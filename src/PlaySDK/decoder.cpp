@@ -16,9 +16,9 @@ void Decoder::seek(uint64_t pos)
 
 static int read_file(void *opaque, uint8_t *buf, int buf_size)
 {
-    IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
+	IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
 
-    size_t uReadSize = audioOpaque.read(buf, buf_size);
+	size_t uReadSize = audioOpaque.read(buf, buf_size);
 	if (0 == uReadSize)
 	{
 		return AVERROR_EOF;
@@ -32,11 +32,11 @@ static int64_t seek_file(void *opaque, int64_t offset, int whence)
 	if (AVSEEK_SIZE == whence)
 	{
 		return -1; // 可直接返回-1
-        //return audioOpaque.size();
+		//return audioOpaque.size();
 	}
 
 	IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
-    return audioOpaque.seek(offset, (E_SeekFileFlag)whence);
+	return audioOpaque.seek(offset, (E_SeekFileFlag)whence);
 }
 
 E_DecoderRetCode Decoder::_checkStream()
@@ -55,7 +55,7 @@ E_DecoderRetCode Decoder::_checkStream()
 				}
 				else
 				{
-                    m_duration = 0;
+					m_duration = 0;
 					//return E_DecoderRetCode::DRC_InvalidAudioStream;
 				}
 
@@ -67,9 +67,9 @@ E_DecoderRetCode Decoder::_checkStream()
 	return E_DecoderRetCode::DRC_NoAudioStream;
 }
 
-/*E_DecoderRetCode Decoder::_open(const wstring& strFile)
+E_DecoderRetCode Decoder::_open(const wstring& strFile)
 {
-    m_duration = -1;
+	m_duration = -1;
 
 	if (NULL == (m_pFormatCtx = avformat_alloc_context()))
 	{
@@ -82,12 +82,18 @@ E_DecoderRetCode Decoder::_checkStream()
 	}
 
 	return _checkStream();
-}*/
+}
 
 #define __avioBuffSize 4096//32768
 
 E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
 {
+	wstring strFile = AudioOpaque.getFile();
+	if (!strFile.empty())
+	{
+		return _open(strFile);
+	}
+
     m_duration = -1;
 
     if (!AudioOpaque.open())
@@ -192,9 +198,9 @@ E_DecodeStatus Decoder::start()
 		}
 
 		if (packet.stream_index == m_audioIndex) {
-			if (m_audioDecoder.packetEnqueue(packet) > 30)
+			if (m_audioDecoder.packetEnqueue(packet) > 1000)
 			{
-				mtutil::usleep(30);
+				mtutil::usleep(50);
 			}
 		}
 		else

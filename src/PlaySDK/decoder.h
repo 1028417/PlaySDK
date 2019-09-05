@@ -121,7 +121,7 @@ private:
 		return E_DecoderRetCode::DRC_Success;
 	}
 
-    //E_DecoderRetCode _open(const wstring& strFile);
+    E_DecoderRetCode _open(const wstring& strFile);
 	E_DecoderRetCode _open(IAudioOpaque& AudioOpaque);
 
 	E_DecoderRetCode _checkStream();
