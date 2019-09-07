@@ -36,25 +36,27 @@ INCLUDEPATH += \
     ./ffmpeg/include
 
 android {
-LIBS    += -lOpenSLES #-landroid -llog
+    LIBS    += -L$$PWD/../../lib/armeabi-v7a/ffmpeg -L$$PWD/../../../XMusic/lib/armeabi-v7a \
+        -lOpenSLES \ #-landroid -llog
+        -lavcodec -lavformat -lavutil -lswresample
 
-LIBS    += -L$$PWD/../../lib/armeabi-v7a/ffmpeg -lavcodec -lavformat -lavutil -lswresample
-
-LIBS    += -L$$PWD/../../../XMusic/lib/armeabi-v7a -lxutil
-
-DESTDIR = $$PWD/../../../XMusic/lib/armeabi-v7a
+    DESTDIR = $$PWD/../../../XMusic/lib/armeabi-v7a
 } else {
-INCLUDEPATH += ./SDL2/include
+    INCLUDEPATH += ./SDL2/include
 
-LIBS    += $$PWD/../../bin/SDL2.dll
+    LIBS    +=  -L$$PWD/../../../Common2.1/bin -L$$PWD/../../bin
 
-LIBS    += -L$$PWD/ffmpeg/lib \
-    -lavcodec.dll -lavformat.dll -lavutil.dll -lswresample.dll
+    macx {
+        LIBS    += "-F$$PWD/SDL2/" \
+            -framework SDL2 -lavcodec.58 -lavformat.58 -lavutil.56 -lswresample.3
+    } else {
+        LIBS    += -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
+    }
 
-LIBS    += -L$$PWD/../../../Common2.1/bin -lxutil
-
-DESTDIR = $$PWD/../../bin
+    DESTDIR = $$PWD/../../bin
 }
+
+LIBS    += -lxutil
 
 MOC_DIR = $$PWD/../../build/
 RCC_DIR = $$PWD/../../build/
