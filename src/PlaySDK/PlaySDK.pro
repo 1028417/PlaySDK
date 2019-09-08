@@ -44,16 +44,19 @@ android {
 } else {
     INCLUDEPATH += ./SDL2/include
 
-    LIBS    +=  -L$$PWD/../../../Common2.1/bin -L$$PWD/../../bin
-
     macx {
-        LIBS    += "-F$$PWD/SDL2/" \
-            -framework SDL2 -lavcodec.58 -lavformat.58 -lavutil.56 -lswresample.3
-    } else {
-        LIBS    += -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
-    }
+        LIBS    +=  -L$$PWD/../../../Common2.1/bin/macx -L$$PWD/../../bin/macx \
+            -lavcodec.58 -lavformat.58 -lavutil.56 -lswresample.3
 
-    DESTDIR = $$PWD/../../bin
+        LIBS    +=  $$PWD/../../bin/macx/SDL2.framework/Versions/A/SDL2
+
+        DESTDIR = $$PWD/../../bin/macx
+    } else {
+        LIBS    +=  -L$$PWD/../../../Common2.1/bin -L$$PWD/../../bin \
+            -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
+
+        DESTDIR = $$PWD/../../bin
+    }
 }
 
 LIBS    += -lxutil
