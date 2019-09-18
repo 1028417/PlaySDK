@@ -62,7 +62,7 @@ android {
     }
 }
 
-MOC_DIR = $$PWD/../../build/
-RCC_DIR = $$PWD/../../build/
-UI_DIR = $$PWD/../../build/
-OBJECTS_DIR = $$PWD/../../build/
+MOC_DIR = $$PWD/../../../build/xPlaySDK
+RCC_DIR = $$PWD/../../../build/xPlaySDK
+UI_DIR = $$PWD/../../../build/xPlaySDK
+OBJECTS_DIR = $$PWD/../../../build/xPlaySDK
