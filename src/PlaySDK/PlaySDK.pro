@@ -9,7 +9,6 @@ QT       -= core
 TARGET = xPlaySDK
 TEMPLATE = lib
 
-#CONFIG += c++11
 QMAKE_CXXFLAGS += -std=c++1y #gnu++1y
 
 SOURCES += \
@@ -32,7 +31,7 @@ HEADERS +=\
 DEFINES += __PlaySDKPrj
 
 INCLUDEPATH += \
-    ../../../Common2.1/inc/util \
+    ../../../Common2.1/inc \
     ./ffmpeg/include
 
 android {
@@ -54,11 +53,19 @@ android {
 
         DESTDIR = $$PWD/../../bin/macx
     } else {
-        LIBS    +=  -L$$PWD/../../bin -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
+        ios {
+            #LIBS    +=  -L$$PWD/../../ioslib -lSDL2 -lavcodec -lavformat -lavutil -lswresample
 
-        LIBS    +=  -L$$PWD/../../../Common2.1/bin -lxutil
+            #LIBS    +=  -L$$PWD/../../../build/ioslib -lxutil
 
-        DESTDIR = $$PWD/../../bin
+            DESTDIR = $$PWD/../../../build/ioslib
+        } else {
+            LIBS    +=  -L$$PWD/../../bin -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
+
+            LIBS    +=  -L$$PWD/../../../Common2.1/bin -lxutil
+
+            DESTDIR = $$PWD/../../bin
+        }
     }
 }
 
