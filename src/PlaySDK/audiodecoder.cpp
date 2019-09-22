@@ -163,9 +163,7 @@ int32_t AudioDecoder::_decodePacket(bool& bQueedEmpty)
 			return 0;
 		}
 	}
-
-	// TODO avcodec_decode_audio4
-
+	
 	/* while return -11 means packet have data not resolved, this packet cannot be unref */
 	m_DecodeData.sendReturn = avcodec_send_packet(m_codecCtx, &packet);
 	if (m_DecodeData.sendReturn < 0 && m_DecodeData.sendReturn != AVERROR(EAGAIN) && m_DecodeData.sendReturn != AVERROR_EOF)
