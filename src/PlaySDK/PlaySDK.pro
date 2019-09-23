@@ -35,41 +35,43 @@ INCLUDEPATH += \
     ./ffmpeg/include
 
 android {
-    LIBS    += -lOpenSLES -L$$PWD/../../lib/armeabi-v7a/ffmpeg \
+    LIBS    += -lOpenSLES -L../../lib/armeabi-v7a/ffmpeg \
         -lavcodec -lavformat -lavutil -lswresample
 
-    LIBS    += -L$$PWD/../../../XMusic/lib/armeabi-v7a -lxutil
+    LIBS    += -L../../../XMusic/lib/armeabi-v7a -lxutil
 
-    DESTDIR = $$PWD/../../../XMusic/lib/armeabi-v7a
+    DESTDIR = ../../../XMusic/lib/armeabi-v7a
 } else {
     INCLUDEPATH += ./SDL2/include
 
     macx {
-        LIBS    +=  $$PWD/../../bin/macx/SDL2.framework/Versions/A/SDL2
+        LIBS    +=  ../../bin/macx/SDL2.framework/Versions/A/SDL2
 
-        LIBS    +=  -L$$PWD/../../bin/macx -lavcodec.58 -lavformat.58 -lavutil.56 -lswresample.3
+        LIBS    +=  -L../../bin/macx -lavcodec.58 -lavformat.58 -lavutil.56 -lswresample.3
 
-        LIBS    +=  -L$$PWD/../../../Common2.1/bin/macx -lxutil.1
+        LIBS    +=  -L../../../Common2.1/bin/macx -lxutil.1
 
-        DESTDIR = $$PWD/../../bin/macx
+        DESTDIR = ../../bin/macx
+
+        target.path = ../../../XMusic/bin/macx
+        INSTALLS += target
+    } else: ios {
+        DESTDIR = ../../../build/ioslib
     } else {
-        ios {
-            #LIBS    +=  -L$$PWD/../../ioslib -lSDL2 -lavcodec -lavformat -lavutil -lswresample
+        LIBS    +=  -L../../bin -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
 
-            #LIBS    +=  -L$$PWD/../../../build/ioslib -lxutil
+        LIBS    +=  -L../../../Common2.1/bin -lxutil
 
-            DESTDIR = $$PWD/../../../build/ioslib
-        } else {
-            LIBS    +=  -L$$PWD/../../bin -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
+        DESTDIR = ../../bin
 
-            LIBS    +=  -L$$PWD/../../../Common2.1/bin -lxutil
-
-            DESTDIR = $$PWD/../../bin
-        }
+        target.path = ../../../XMusic/bin
+        INSTALLS += target
     }
 }
 
-MOC_DIR = $$PWD/../../../build/xPlaySDK
-RCC_DIR = $$PWD/../../../build/xPlaySDK
-UI_DIR = $$PWD/../../../build/xPlaySDK
-OBJECTS_DIR = $$PWD/../../../build/xPlaySDK
+INSTALLS += target
+
+MOC_DIR = ../../../build/xPlaySDK
+RCC_DIR = ../../../build/xPlaySDK
+UI_DIR = ../../../build/xPlaySDK
+OBJECTS_DIR = ../../../build/xPlaySDK
