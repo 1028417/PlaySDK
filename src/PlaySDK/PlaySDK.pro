@@ -69,8 +69,6 @@ android {
     }
 }
 
-INSTALLS += target
-
 MOC_DIR = ../../../build/xPlaySDK
 RCC_DIR = ../../../build/xPlaySDK
 UI_DIR = ../../../build/xPlaySDK
