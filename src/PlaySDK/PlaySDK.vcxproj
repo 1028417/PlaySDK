@@ -99,9 +99,9 @@
     <Link>
       <SubSystem>NotSet</SubSystem>
       <AdditionalLibraryDirectories>./ffmpeg/lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>../../../Common2.1/lib/util.lib;./SDL2/SDL2.lib;swscale.lib;swresample.lib;postproc.lib;avutil.lib;avformat.lib;avfilter.lib;avdevice.lib;avcodec.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../../../Common2.1/libs/util.lib;./SDL2/SDL2.lib;swscale.lib;swresample.lib;postproc.lib;avutil.lib;avformat.lib;avfilter.lib;avdevice.lib;avcodec.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <ImportLibrary>../../lib/$(TargetName).lib</ImportLibrary>
+      <ImportLibrary>../../libs/$(TargetName).lib</ImportLibrary>
     </Link>
     <BuildLog>
       <Path />
@@ -133,8 +133,8 @@
       <SubSystem>NotSet</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ImportLibrary>../../lib/$(TargetName).lib</ImportLibrary>
-      <AdditionalDependencies>../../../Common2.1/lib/util.lib;./SDL2/SDL2.lib;swscale.lib;swresample.lib;postproc.lib;avutil.lib;avformat.lib;avfilter.lib;avdevice.lib;avcodec.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary>../../libs/$(TargetName).lib</ImportLibrary>
+      <AdditionalDependencies>../../../Common2.1/libs/util.lib;./SDL2/SDL2.lib;swscale.lib;swresample.lib;postproc.lib;avutil.lib;avformat.lib;avfilter.lib;avdevice.lib;avcodec.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>./ffmpeg/lib;</AdditionalLibraryDirectories>
       <AdditionalOptions> /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
