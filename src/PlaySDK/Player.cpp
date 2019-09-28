@@ -16,7 +16,12 @@ int CPlayer::InitSDK()
 #if __android
     return CSLESEngine::init();
 #else
-    return CSDLEngine::init();
+    int nRet = CSDLEngine::init();
+    if (nRet != 0)
+    {
+        g_logger << "initSDLEngine fail: " >> CSDLEngine::getErrMsg();
+    }
+    return nRet;
 #endif
 }
 

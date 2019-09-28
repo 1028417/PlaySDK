@@ -10,9 +10,7 @@ static const int g_lpNextSampleRates[] = { 44100, 48000, 96000, 192000 };
 
 int CSDLEngine::init()
 {
-#if __android
     SDL_SetMainReady();
-#endif
 
     return SDL_Init(SDL_INIT_AUDIO);// | SDL_INIT_TIMER);
 }
