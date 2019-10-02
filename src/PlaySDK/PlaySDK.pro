@@ -53,7 +53,7 @@ android {
         #LIBS    += -lavcodec -lavformat -lavutil -lswresample \
         #            -framework CoreFoundation   -framework AudioToolbox  -lz -lbz2 -liconv -framework CoreMedia -framework VideoToolbox -framework AVFoundation -framework CoreVideo -framework Security
 
-        LIBS    += -L../../../Common2.1/bin/mac -lxutil.1
+        LIBS    += -L../../../Common2.1/bin/mac -lxutil
 
         DESTDIR = ../../bin/mac
 

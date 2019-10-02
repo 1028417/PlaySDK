@@ -70,15 +70,9 @@ public:
 		return _check(AudioOpaque);
 	}
 
-    /*E_DecoderRetCode open(const wstring& strFile, bool bForce48000 = false)
-	{
-		return _open(strFile, bForce48000);
-    }*/
+    //E_DecoderRetCode open(const wstring& strFile, bool bForce48000 = false);
 
-	E_DecoderRetCode open(IAudioOpaque& AudioOpaque, bool bForce48000 = false)
-	{
-		return _open(AudioOpaque, bForce48000);
-	}
+    E_DecoderRetCode open(IAudioOpaque& AudioOpaque, bool bForce48000 = false);
 
 	E_DecodeStatus start();
 
