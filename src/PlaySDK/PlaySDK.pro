@@ -42,7 +42,7 @@ android {
     LIBS    += -L../../../XMusic/libs/armeabi-v7a -lxutil
 
     build_dir = ../../../build/xPlaySDK/android
-    DESTDIR = ../../../XMusic/libs/armeabi-v7a
+    DESTDIR = ../../../libs/armeabi-v7a
 } else {
     INCLUDEPATH += ./SDL2/include
 
