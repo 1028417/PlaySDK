@@ -41,7 +41,7 @@ android {
 
     LIBS    += -L../../../XMusic/libs/armeabi-v7a -lxutil
 
-    build_dir = ../../../build/xPlaySDK/android
+    platform = android
     DESTDIR = ../../../XMusic/libs/armeabi-v7a
 } else {
     INCLUDEPATH += ./SDL2/include
@@ -56,26 +56,28 @@ android {
 
         LIBS    += -L../../../Common2.1/bin/mac -lxutil
 
-        build_dir = ../../../build/xPlaySDK/mac
+        platform = mac
         DESTDIR = ../../bin/mac
 
         target.path = ../../../XMusic/bin/mac
         INSTALLS += target
     } else: ios {
-        build_dir = ../../../build/xPlaySDK/ios
+        platform = ios
         DESTDIR = ../../../build/ioslib
     } else {
         LIBS    += -L../../bin -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
 
         LIBS    += -L../../../Common2.1/bin -lxutil
 
-        build_dir = ../../../build/xPlaySDK/win
+        platform = win
         DESTDIR = ../../bin
 
         target.path = ../../../XMusic/bin
         INSTALLS += target
     }
 }
+
+build_dir = ../../../build/xPlaySDK/$$platform
 
 MOC_DIR = $$build_dir
 RCC_DIR = $$build_dir
