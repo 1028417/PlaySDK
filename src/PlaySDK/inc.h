@@ -15,7 +15,7 @@ extern "C"
 
 #if !__android
 //#define SDL_MAIN_HANDLED
-#include "SDL.h"
+#include "../../SDL2/include/SDL.h"
 #undef main
 #endif
 

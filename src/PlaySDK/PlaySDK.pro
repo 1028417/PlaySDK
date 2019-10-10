@@ -32,7 +32,7 @@ DEFINES += __PlaySDKPrj
 
 INCLUDEPATH += \
     ../../../Common2.1/inc \
-    ./ffmpeg/include
+    ../../ffmpeg/include
 
 android {
     LIBS    += -lOpenSLES
@@ -44,8 +44,6 @@ android {
     platform = android
     DESTDIR = ../../../XMusic/libs/armeabi-v7a
 } else {
-    INCLUDEPATH += ./SDL2/include
-
     macx {
         LIBS    +=  ../../bin/mac/SDL2.framework/Versions/A/SDL2
 
