@@ -11,7 +11,7 @@ ITxtWriter& g_logger(m_logger);
 int CPlayer::InitSDK()
 {
     m_logger.open(L"playsdk.log", true);
-    m_logger >> "InitSDK";
+    g_logger >> "InitSDK";
 
 #if __android
     return CSLESEngine::init();
@@ -27,7 +27,7 @@ int CPlayer::InitSDK()
 
 void CPlayer::QuitSDK()
 {
-    m_logger >> "QuitSDK";
+    g_logger >> "QuitSDK";
     m_logger.close();
 
 #if __android
