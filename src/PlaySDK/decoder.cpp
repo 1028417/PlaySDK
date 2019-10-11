@@ -88,13 +88,11 @@ E_DecoderRetCode Decoder::_open(const wstring& strFile)
 
 E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
 {
-#if __winvc
-	wstring strFile = AudioOpaque.getFile();
+	cauto& strFile = AudioOpaque.getFile();
 	if (!strFile.empty())
 	{
 		return _open(strFile);
 	}
-#endif
 
     m_duration = -1;
 
