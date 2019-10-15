@@ -9,7 +9,7 @@ QT       -= core
 TARGET = xPlaySDK
 TEMPLATE = lib
 
-QMAKE_CXXFLAGS += -std=c++1y #gnu++1y
+#QMAKE_CXXFLAGS += -std=c++11 #c++1y #gnu++1y
 
 SOURCES += \
     Player.cpp \
