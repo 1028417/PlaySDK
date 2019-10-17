@@ -11,50 +11,36 @@ TEMPLATE = lib
 
 #QMAKE_CXXFLAGS += -std=c++11 #c++1y #gnu++1y
 
-SOURCES += \
-    Player.cpp \
-    decoder.cpp \
-    audiodecoder.cpp \
-    avpacketqueue.cpp \
-    SDLEngine.cpp \
-    SLESEngine.cpp
+SOURCES += cpp/Player.cpp \
+    cpp/decoder.cpp \
+    cpp/audiodecoder.cpp \
+    cpp/avpacketqueue.cpp \
+    cpp/SDLEngine.cpp \
+    cpp/SLESEngine.cpp
 
-HEADERS +=\
-    ../../inc/Player.h \
-    decoder.h \
-    audiodecoder.h \
-    avpacketqueue.h \
-    inc.h \
-    SDLEngine.h \
-    SLESEngine.h
+HEADERS += ../../inc/Player.h  cpp/inc.h
+
+INCLUDEPATH += ../../../Common2.1/inc  ../../3rd/ffmpeg/include
 
 DEFINES += __PlaySDKPrj
 
-INCLUDEPATH += \
-    ../../../Common2.1/inc \
-    ../../ffmpeg/include
-
 android {
-    LIBS    += -lOpenSLES
-
-    LIBS    += -L../../libs/armeabi-v7a/ffmpeg -lavcodec -lavformat -lavutil -lswresample
-
-    LIBS    += -L../../../XMusic/libs/armeabi-v7a -lxutil
+    LIBS += -L../../../XMusic/libs/armeabi-v7a  -lxutil \
+            -lOpenSLES \
+            -L../../libs/armeabi-v7a/ffmpeg  -lavcodec  -lavformat  -lavutil  -lswresample \
 
     platform = android
     DESTDIR = ../../../XMusic/libs/armeabi-v7a
 } else {
     macx {
-        LIBS    +=  ../../bin/mac/SDL2.framework/Versions/A/SDL2
+        LIBS += -L../../../Common2.1/bin/mac  -lxutil \
+                ../../bin/mac/SDL2.framework/Versions/A/SDL2 \
+                -L../../bin/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
+        #LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
+        #        -framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
+        #        -framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
 
-        LIBS    += -L../../bin/mac -lavcodec.58 -lavformat.58 -lavutil.56 -lswresample.3
-
-        #LIBS    += -lavcodec -lavformat -lavutil -lswresample \
-        #            -framework CoreFoundation   -framework AudioToolbox  -lz -lbz2 -liconv -framework CoreMedia -framework VideoToolbox -framework AVFoundation -framework CoreVideo -framework Security
-
-        LIBS    += -L../../../Common2.1/bin/mac -lxutil
-
-        platform = mac
+       platform = mac
         DESTDIR = ../../bin/mac
 
         target.path = ../../../XMusic/bin/mac
@@ -63,9 +49,8 @@ android {
         platform = ios
         DESTDIR = ../../../build/ioslib
     } else {
-        LIBS    += -L../../bin -lSDL2 -lavcodec-58 -lavformat-58 -lavutil-56 -lswresample-3
-
-        LIBS    += -L../../../Common2.1/bin -lxutil
+        LIBS += -L../../../Common2.1/bin  -lxutil \
+                -L../../bin  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
 
         platform = win
         DESTDIR = ../../bin
