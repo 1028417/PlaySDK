@@ -25,6 +25,8 @@ public:
 	{
 	}
 	
+	~Decoder() {}
+
 private:
 	tagDecodeStatus m_DecodeStatus;
 	AudioDecoder m_audioDecoder;

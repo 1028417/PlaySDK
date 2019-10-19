@@ -75,7 +75,7 @@ E_DecoderRetCode Decoder::_open(const wstring& strFile)
 	{
 		return E_DecoderRetCode::DRC_Fail;
 	}
-	int nRet = avformat_open_input(&m_pFormatCtx, wsutil::toUTF8(strFile).c_str(), NULL, NULL);
+	int nRet = avformat_open_input(&m_pFormatCtx, strutil::wstrToUTF8(strFile).c_str(), NULL, NULL);
 	if (nRet != 0)
 	{
 		return E_DecoderRetCode::DRC_OpenFail;

@@ -1,10 +1,117 @@
 
 #include "decoder.h"
 
-static Decoder m_Decoder;
-
 static CUTF8Writer m_logger;
 ITxtWriter& g_logger(m_logger);
+
+#if !__windows
+#define _aligned_free(p) free(p)
+#endif
+
+CAudioOpaque::CAudioOpaque()
+{
+#if __windows
+	m_pDecoder = _aligned_malloc(sizeof(Decoder), 16);
+#elif __android
+    m_pDecoder = memalign(16, sizeof(Decoder));
+#else
+    (void)posix_memalign(&m_pDecoder, 16, sizeof(Decoder));
+#endif
+
+    new (m_pDecoder) Decoder;
+}
+
+CAudioOpaque::~CAudioOpaque()
+{
+	close();
+	
+	((Decoder*)m_pDecoder)->~Decoder();
+	_aligned_free(m_pDecoder);
+}
+
+void CAudioOpaque::setFile(const wstring& strFile)
+{
+	close();
+
+	m_size = -1;
+
+	m_strFile = strFile;
+
+	if (!m_strFile.empty())
+	{
+		m_size = fsutil::GetFileSize(m_strFile);
+	}
+}
+
+int CAudioOpaque::checkDuration()
+{
+	return (int)((Decoder*)m_pDecoder)->check(*this);
+}
+
+bool CAudioOpaque::open()
+{
+	if (m_pf)
+	{
+		return m_size;
+	}
+
+	m_size = -1;
+	m_uPos = 0;
+
+	m_pf = fsutil::fopen(m_strFile, "rb");
+	if (NULL == m_pf)
+	{
+		return false;
+	}
+
+	tagFileStat stat;
+	memset(&stat, 0, sizeof stat);
+	if (!fsutil::fileStat(m_pf, stat))
+	{
+		close();
+		return false;
+	}
+
+	m_size = (int32_t)stat.st_size;
+	if (0 <= m_size)
+	{
+		close();
+		return false;
+	}
+
+	return true;
+}
+
+int64_t CAudioOpaque::seek(int64_t offset, E_SeekFileFlag eFlag)
+{
+	auto nRet = fsutil::seekFile(m_pf, offset, eFlag);
+	if (nRet >= 0)
+	{
+		m_uPos = nRet;
+	}
+
+	return m_uPos;
+}
+
+size_t CAudioOpaque::read(uint8_t *buf, int buf_size)
+{
+	size_t uRet = fread(buf, 1, buf_size, m_pf);
+	m_uPos += uRet;
+	return uRet;
+}
+
+void CAudioOpaque::close()
+{
+	if (m_pf)
+	{
+		(void)fclose(m_pf);
+		m_pf = NULL;
+	}
+
+	m_uPos = 0;
+}
+
+static Decoder g_Decoder;
 
 int CPlayer::InitSDK()
 {
@@ -36,41 +143,18 @@ void CPlayer::QuitSDK()
 }
 
 template <typename T>
-int CPlayer::_CheckDuration(T& input, bool bLock)
-{
-    int64_t nDuration = 0;
-    if (bLock)
-    {
-		static mutex s_mutex;
-		s_mutex.lock();
-
-		static Decoder Decoder;
-        nDuration = Decoder.check(input);
-
-		s_mutex.unlock();
-    }
-    else
-    {
-		Decoder Decoder;
-        nDuration = Decoder.check(input);
-    }
-
-    return (int)nDuration;
-}
-
-template <typename T>
 bool CPlayer::_Play(T& input, uint64_t uStartPos, bool bForce48000)
 {
     m_stopedSignal.wait(true);
 
-	if (m_Decoder.open(input, bForce48000) != E_DecoderRetCode::DRC_Success)
+	if (g_Decoder.open(input, bForce48000) != E_DecoderRetCode::DRC_Success)
 	{
 		m_stopedSignal.set();
 		return false;
 	}
 
 	mtutil::thread([&]() {
-		E_DecodeStatus eRet = m_Decoder.start();
+		E_DecodeStatus eRet = g_Decoder.start();
 
 		m_stopedSignal.set();
 
@@ -85,7 +169,7 @@ bool CPlayer::_Play(T& input, uint64_t uStartPos, bool bForce48000)
 
 	if (0 != uStartPos)
 	{
-		m_Decoder.seek(uStartPos);
+		g_Decoder.seek(uStartPos);
 	}
 	
     return true;
@@ -93,22 +177,19 @@ bool CPlayer::_Play(T& input, uint64_t uStartPos, bool bForce48000)
 
 int CPlayer::GetDuration() const
 {
-	return m_Decoder.duration();
-}
-
-int CPlayer::CheckDuration(IAudioOpaque& AudioOpaque, bool bLock)
-{
-    return _CheckDuration(AudioOpaque, bLock);
+	return g_Decoder.duration();
 }
 
 bool CPlayer::Play(IAudioOpaque& AudioOpaque, uint64_t uStartPos, bool bForce48000)
 {
+	Stop();
+
     return _Play(AudioOpaque, uStartPos, bForce48000);
 }
 
 E_PlayStatus CPlayer::GetPlayStatus()
 {
-	E_DecodeStatus eDecodeStatus = m_Decoder.GetDecodeStatus();
+	E_DecodeStatus eDecodeStatus = g_Decoder.GetDecodeStatus();
 	switch (eDecodeStatus)
 	{
 	case E_DecodeStatus::DS_Opening:
@@ -123,35 +204,35 @@ E_PlayStatus CPlayer::GetPlayStatus()
 
 void CPlayer::SetVolume(UINT uVolume)
 {
-	m_Decoder.setVolume(uVolume);
+	g_Decoder.setVolume(uVolume);
 }
 
 uint64_t CPlayer::getClock() const
 {
-    return m_Decoder.getClock();
+    return g_Decoder.getClock();
 }
 
 void CPlayer::Seek(UINT uPos)
 {
-	m_Decoder.seek(uPos*__1e6);
+	g_Decoder.seek(uPos*__1e6);
 }
 
 void CPlayer::Pause()
 {
 	if (E_PlayStatus::PS_Play == GetPlayStatus())
 	{
-		m_Decoder.pause();
+		g_Decoder.pause();
 	}
 }
 
 void CPlayer::Resume()
 {
-    m_Decoder.resume();
+    g_Decoder.resume();
 }
 
 void CPlayer::Stop()
 {
-	m_Decoder.cancel();
+	g_Decoder.cancel();
 
     m_stopedSignal.wait();
 }
