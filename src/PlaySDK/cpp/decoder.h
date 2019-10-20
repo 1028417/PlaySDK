@@ -21,6 +21,12 @@ enum class E_DecoderRetCode
 class Decoder
 {
 public:
+        static Decoder& inst()
+        {
+           static Decoder inst;
+           return inst;
+        }
+
 	Decoder() : m_audioDecoder(m_DecodeStatus)
 	{
 	}

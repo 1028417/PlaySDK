@@ -18,11 +18,32 @@ static int read_file(void *opaque, uint8_t *buf, int buf_size)
 {
 	IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
 
-	size_t uReadSize = audioOpaque.read(buf, buf_size);
-	if (0 == uReadSize)
-	{
-		return AVERROR_EOF;
-	}
+    int uReadSize = 0;
+    while (true)
+    {
+        uReadSize = audioOpaque.read(buf, buf_size);
+        if (uReadSize < 0)
+        {
+            return AVERROR_EOF;
+        }
+
+        if (uReadSize > 0)
+        {
+            break;
+        }
+
+        for (UINT uIdx = 0; uIdx < 100; uIdx++)
+        {
+            if (Decoder::inst().GetDecodeStatus() == E_DecodeStatus::DS_Cancel)
+            {
+                return AVERROR_EOF;
+            }
+
+            do {
+                mtutil::usleep(100);
+            } while (Decoder::inst().GetDecodeStatus() == E_DecodeStatus::DS_Paused);
+        }
+    }
 
 	return uReadSize;
 }
