@@ -35,12 +35,7 @@ void CAudioOpaque::setFile(const wstring& strFile)
 
 	m_size = -1;
 
-	m_strFile = strFile;
-
-	if (!m_strFile.empty())
-	{
-		m_size = fsutil::GetFileSize(m_strFile);
-	}
+    m_strFile = strFile;
 }
 
 int CAudioOpaque::checkDuration()
