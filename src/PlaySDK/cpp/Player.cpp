@@ -142,7 +142,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 		return false;
 	}
 
-    m_thread.start([&]() {
+    m_thread.start([&, cbFinish]() {
         E_DecodeStatus eStatus = __decoder.start();
 		_onFinish(eStatus);
 
