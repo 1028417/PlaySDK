@@ -34,28 +34,27 @@ static int read_file(void *opaque, uint8_t *buf, int bufSize)
             return AVERROR_EOF;
         }
 
-        if (audioOpaque.pos() == 0)
+        /*if (audioOpaque.pos() == 0)
         {
             mtutil::usleep(100);
-        }
-        else
+            continue;
+        }*/
+
+        Decoder *pDecoder = (Decoder*)audioOpaque.decoder();
+        for (UINT uIdx = 0; uIdx < 100; )
         {
-			Decoder *pDecoder = (Decoder*)audioOpaque.decoder();
-            for (UINT uIdx = 0; uIdx < 100; )
+            auto eStatus = pDecoder->decodeStatus();
+            if (E_DecodeStatus::DS_Cancel == eStatus)
             {
-                auto eStatus = pDecoder->decodeStatus();
-                if (E_DecodeStatus::DS_Cancel == eStatus)
-                {
-                    return AVERROR_EOF;
-                }
-
-                if (eStatus != E_DecodeStatus::DS_Paused)
-                {
-                    uIdx++;
-                }
-
-                mtutil::usleep(100);
+                return AVERROR_EOF;
             }
+
+            if (eStatus != E_DecodeStatus::DS_Paused)
+            {
+                uIdx++;
+            }
+
+            mtutil::usleep(100);
         }
     }
 

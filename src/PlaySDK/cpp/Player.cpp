@@ -10,8 +10,7 @@ ITxtWriter& g_logger(m_logger);
 #define _aligned_free(p) free(p)
 #endif
 
-CAudioOpaque::CAudioOpaque(FILE *pf)
-    : m_pf(pf)
+CAudioOpaque::CAudioOpaque()
 {
 #if __windows
 	m_pDecoder = _aligned_malloc(sizeof(Decoder), 16);
@@ -26,10 +25,37 @@ CAudioOpaque::CAudioOpaque(FILE *pf)
 
 CAudioOpaque::~CAudioOpaque()
 {
-	close();
-	
 	((Decoder*)m_pDecoder)->~Decoder();
 	_aligned_free(m_pDecoder);
+}
+
+void CAudioOpaque::close()
+{
+    if (m_pf)
+    {
+        (void)fclose(m_pf);
+        m_pf = NULL;
+    }
+
+    m_uPos = 0;
+}
+
+int CAudioOpaque::open(const wstring& strFile)
+{
+    m_pf = fsutil::fopen(strFile, "rb");
+    if (NULL == m_pf)
+    {
+        return -1;
+    }
+
+    int nFileSize = fsutil::GetFileSize(m_pf);
+    if (nFileSize <= 0)
+    {
+        fclose(m_pf);
+        m_pf = NULL;
+    }
+
+    return nFileSize;
 }
 
 UINT CAudioOpaque::checkDuration()
@@ -63,17 +89,6 @@ int CAudioOpaque::read(uint8_t *buf, size_t size)
 
 	m_uPos += uRet;
 	return uRet;
-}
-
-void CAudioOpaque::close()
-{
-	if (m_pf)
-	{
-		(void)fclose(m_pf);
-		m_pf = NULL;
-	}
-
-	m_uPos = 0;
 }
 
 int CPlayer::InitSDK()
