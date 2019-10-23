@@ -1,4 +1,6 @@
 
+#include "../../../inc/Player.h"
+
 #include "audiodecoder.h"
 
 /* Minimum SDL audio buffer size, in samples. */

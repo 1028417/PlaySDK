@@ -1,4 +1,6 @@
 
+#include "../../../inc/Player.h"
+
 #include "decoder.h"
 
 static CUTF8Writer m_logger;
@@ -8,7 +10,8 @@ ITxtWriter& g_logger(m_logger);
 #define _aligned_free(p) free(p)
 #endif
 
-CAudioOpaque::CAudioOpaque()
+CAudioOpaque::CAudioOpaque(FILE *pf)
+    : m_pf(pf)
 {
 #if __windows
 	m_pDecoder = _aligned_malloc(sizeof(Decoder), 16);
@@ -18,7 +21,7 @@ CAudioOpaque::CAudioOpaque()
     (void)posix_memalign(&m_pDecoder, 16, sizeof(Decoder));
 #endif
 
-    new (m_pDecoder) Decoder;
+    new (m_pDecoder) Decoder(*this);
 }
 
 CAudioOpaque::~CAudioOpaque()
@@ -29,52 +32,14 @@ CAudioOpaque::~CAudioOpaque()
 	_aligned_free(m_pDecoder);
 }
 
-void CAudioOpaque::setFile(const wstring& strFile)
+UINT CAudioOpaque::checkDuration()
 {
-	close();
-
-	m_size = -1;
-
-    m_strFile = strFile;
+	return ((Decoder*)m_pDecoder)->check();
 }
 
-int CAudioOpaque::checkDuration()
+E_DecodeStatus CAudioOpaque::decodeStatus()
 {
-	return (int)((Decoder*)m_pDecoder)->check(*this);
-}
-
-bool CAudioOpaque::open()
-{
-	if (m_pf)
-	{
-		return m_size;
-	}
-
-	m_size = -1;
-	m_uPos = 0;
-
-	m_pf = fsutil::fopen(m_strFile, "rb");
-	if (NULL == m_pf)
-	{
-		return false;
-	}
-
-	tagFileStat stat;
-	memset(&stat, 0, sizeof stat);
-	if (!fsutil::fileStat(m_pf, stat))
-	{
-		close();
-		return false;
-	}
-
-	m_size = (int32_t)stat.st_size;
-	if (0 <= m_size)
-	{
-		close();
-		return false;
-	}
-
-	return true;
+	return ((Decoder*)m_pDecoder)->decodeStatus();
 }
 
 int64_t CAudioOpaque::seek(int64_t offset, E_SeekFileFlag eFlag)
@@ -88,9 +53,9 @@ int64_t CAudioOpaque::seek(int64_t offset, E_SeekFileFlag eFlag)
 	return m_uPos;
 }
 
-int CAudioOpaque::read(uint8_t *buf, int buf_size)
+int CAudioOpaque::read(uint8_t *buf, size_t size)
 {
-	size_t uRet = fread(buf, 1, buf_size, m_pf);
+    size_t uRet = fread(buf, 1, size, m_pf);
     if (0 == uRet)
     {
         return -1;
@@ -140,97 +105,84 @@ void CPlayer::QuitSDK()
 #endif
 }
 
-template <typename T>
-bool CPlayer::_Play(T& input, uint64_t uStartPos, bool bForce48000)
-{
-    m_stopedSignal.wait(true);
+#define __decoder (*(Decoder*)m_AudioOpaque.decoder())
 
-    if (Decoder::inst().open(input, bForce48000) != E_DecoderRetCode::DRC_Success)
+void CPlayer::Stop()
+{
+	mutex_lock lock(m_mutex);
+
+	__decoder.cancel();
+	m_thread.cancel();
+}
+
+bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cbFinish)
+{
+    mutex_lock lock(m_mutex);
+
+	__decoder.cancel();
+	m_thread.cancel();
+
+    if (__decoder.open(bForce48000) != E_DecoderRetCode::DRC_Success)
 	{
-		m_stopedSignal.set();
 		return false;
 	}
 
-	mtutil::thread([&]() {
-        E_DecodeStatus eRet = Decoder::inst().start();
+    m_thread.start([&]() {
+        E_DecodeStatus eStatus = __decoder.start();
+		_onFinish(eStatus);
 
-		m_stopedSignal.set();
-
-		if (E_DecodeStatus::DS_Finished == eRet)
+		if (cbFinish)
 		{
-			if (m_cbFinish)
-			{
-				m_cbFinish();
-			}
+			cbFinish(eStatus);
 		}
 	});
 
 	if (0 != uStartPos)
 	{
-        Decoder::inst().seek(uStartPos);
+		__decoder.seek(uStartPos);
 	}
 	
     return true;
 }
 
-int CPlayer::GetDuration() const
+uint32_t CPlayer::GetDuration()
 {
-    return Decoder::inst().duration();
+	mutex_lock lock(m_mutex);
+
+	return __decoder.duration();
 }
 
-bool CPlayer::Play(IAudioOpaque& AudioOpaque, uint64_t uStartPos, bool bForce48000)
+uint64_t CPlayer::GetClock()
 {
-	Stop();
+    mutex_lock lock(m_mutex);
 
-    return _Play(AudioOpaque, uStartPos, bForce48000);
-}
-
-E_PlayStatus CPlayer::GetPlayStatus()
-{
-    E_DecodeStatus eDecodeStatus = Decoder::inst().GetDecodeStatus();
-	switch (eDecodeStatus)
-	{
-	case E_DecodeStatus::DS_Opening:
-	case E_DecodeStatus::DS_Decoding:
-		return E_PlayStatus::PS_Play;
-	case E_DecodeStatus::DS_Paused:
-		return E_PlayStatus::PS_Pause;
-	default:
-		return E_PlayStatus::PS_Stop;
-	}
-}
-
-void CPlayer::SetVolume(UINT uVolume)
-{
-    Decoder::inst().setVolume(uVolume);
-}
-
-uint64_t CPlayer::getClock() const
-{
-    return Decoder::inst().getClock();
+    return __decoder.getClock();
 }
 
 void CPlayer::Seek(UINT uPos)
 {
-    Decoder::inst().seek(uPos*__1e6);
+    mutex_lock lock(m_mutex);
+
+    __decoder.seek(uPos*__1e6);
 }
 
 void CPlayer::Pause()
 {
-	if (E_PlayStatus::PS_Play == GetPlayStatus())
-	{
-        Decoder::inst().pause();
-	}
+    mutex_lock lock(m_mutex);
+	
+	__decoder.pause();
 }
 
 void CPlayer::Resume()
 {
-    Decoder::inst().resume();
+    mutex_lock lock(m_mutex);
+
+	__decoder.resume();
 }
 
-void CPlayer::Stop()
+void CPlayer::SetVolume(UINT uVolume)
 {
-    Decoder::inst().cancel();
+	mutex_lock lock(m_mutex);
 
-    m_stopedSignal.wait();
+	__decoder.setVolume(uVolume);
 }

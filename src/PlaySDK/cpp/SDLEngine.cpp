@@ -82,7 +82,7 @@ void CSDLEngine::audioCallback(void *userdata, uint8_t *stream, int nBufSize)
 bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& DevInfo)
 {
 	SDL_AudioSpec wantSpec;
-	memset(&wantSpec, 0, sizeof(wantSpec));
+	memzero(wantSpec);
 
 	wantSpec.format = AUDIO_F32LSB;
 	wantSpec.samples = (Uint16)samples;

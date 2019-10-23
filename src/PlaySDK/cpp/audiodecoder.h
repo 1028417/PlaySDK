@@ -40,15 +40,6 @@ struct tagDecodeData
 	int audioSrcFreq = 0;
 };
 
-enum class E_DecodeStatus
-{
-    DS_Opening,
-	DS_Decoding,
-	DS_Paused,
-	DS_Cancel,
-	DS_Finished,
-};
-
 struct tagDecodeStatus
 {
 	E_DecodeStatus eDecodeStatus = E_DecodeStatus::DS_Finished;
@@ -108,7 +99,7 @@ public:
 		m_packetQueue.clear();
 	}
 
-	uint64_t getClock()
+	uint64_t clock()
 	{
 		return m_clock;
 	}

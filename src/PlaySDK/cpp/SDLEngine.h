@@ -4,7 +4,7 @@
 
 #if !__android
 
-using CB_SDLStream = std::function<int(int nMaxBufSize, Uint8*& lpBuff)>;
+using CB_SDLStream = function<int(int nMaxBufSize, Uint8*& lpBuff)>;
 
 class CSDLEngine : public IAudioDevEngine
 {
@@ -12,7 +12,7 @@ public:
 	CSDLEngine(const CB_SDLStream& cb)
 		: m_cb(cb)
 	{
-		memset(&m_spec, 0, sizeof m_spec);
+		memzero(m_spec);
 	}
 
 private:

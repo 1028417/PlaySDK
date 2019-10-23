@@ -20,7 +20,7 @@ public:
 
 private:
     mutex m_mutex;
-    condition_variable m_condVar;
+    condition_variable m_condition;
 
     list<AVPacket> m_queue;
 };

@@ -7,7 +7,7 @@ size_t AvPacketQueue::enqueue(AVPacket *packet)
 
     m_queue.push_back(*packet);
 
-    m_condVar.notify_one();
+    m_condition.notify_one();
 
 	return m_queue.size();
 }
@@ -30,7 +30,7 @@ bool AvPacketQueue::dequeue(AVPacket& packet, bool isBlock)
             break;
         }
 		
-        m_condVar.wait(lock);
+        m_condition.wait(lock);
     }
 
 	return false;
