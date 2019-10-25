@@ -63,14 +63,7 @@ public:
 
     void setVolume(uint8_t volume);
 	
-    uint32_t check()
-	{
-		(void)_open();
-		_clearData();
-		return m_duration;
-	}
-
-    //E_DecoderRetCode open(const wstring& strFile, bool bForce48000 = false);
+	uint32_t check();
 
     E_DecoderRetCode open(bool bForce48000 = false);
 
@@ -86,5 +79,5 @@ private:
 
 	E_DecoderRetCode _checkStream();
 
-	void _clearData();
+	void _cleanup();
 };

@@ -147,6 +147,17 @@ E_DecoderRetCode Decoder::_open()
     return  _checkStream();
 }
 
+uint32_t Decoder::check()
+{
+	(void)_open();
+
+	uint32_t uDuration = m_duration;
+
+	_cleanup();
+
+	return uDuration;
+}
+
 E_DecoderRetCode Decoder::open(bool bForce48000)
 {
 	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Opening;
@@ -154,14 +165,14 @@ E_DecoderRetCode Decoder::open(bool bForce48000)
 	auto eRet = _open();
 	if (eRet != E_DecoderRetCode::DRC_Success)
 	{
-		_clearData();
+		_cleanup();
 		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
 		return eRet;
 	}
 
 	if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioIndex], bForce48000))
 	{
-		_clearData();
+		_cleanup();
 		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
 		return E_DecoderRetCode::DRC_InitAudioDevFail;
 	}
@@ -253,7 +264,7 @@ E_DecodeStatus Decoder::start()
     /* close audio device */
     m_audioDecoder.close();
 
-	_clearData();
+	_cleanup();
 
 	return m_DecodeStatus.eDecodeStatus;
 }
@@ -286,7 +297,7 @@ void Decoder::cancel()
 	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
 }
 
-void Decoder::_clearData()
+void Decoder::_cleanup()
 {
     if (m_pFormatCtx)
 	{
