@@ -4,7 +4,7 @@
 #include "decoder.h"
 
 static CUTF8Writer m_logger;
-ITxtWriter& g_logger(m_logger);
+const ITxtWriter& g_logger(m_logger);
 
 #if !__windows
 #define _aligned_free(p) free(p)
