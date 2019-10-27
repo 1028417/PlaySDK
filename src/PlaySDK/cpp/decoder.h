@@ -44,35 +44,35 @@ private:
 	int64_t m_seekPos = -1;
 
 public:
-	uint32_t duration() const
-	{
-		return m_duration;
-	}
-
-	E_DecodeStatus decodeStatus() const
-	{
-		return m_DecodeStatus.eDecodeStatus;
-	}
+        E_DecodeStatus decodeStatus() const
+        {
+                return m_DecodeStatus.eDecodeStatus;
+        }
 
 	uint64_t getClock()
 	{
 		return m_audioDecoder.clock();
 	}
-	
-	void seek(uint64_t pos);
 
-    void setVolume(uint8_t volume);
-	
+        uint32_t duration() const
+        {
+                return m_duration;
+        }
+
 	uint32_t check();
 
-    E_DecoderRetCode open(bool bForce48000 = false);
+        E_DecoderRetCode open(bool bForce48000 = false);
 
 	E_DecodeStatus start();
+
+        void cancel();
 
 	void pause();
 	void resume();
 
-	void cancel();
+        void seek(uint64_t pos);
+
+        void setVolume(uint8_t volume);
 
 private:
 	E_DecoderRetCode _open();

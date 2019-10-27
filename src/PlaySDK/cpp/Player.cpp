@@ -70,10 +70,10 @@ E_DecodeStatus CAudioOpaque::decodeStatus()
 
 int64_t CAudioOpaque::seek(int64_t offset, E_SeekFileFlag eFlag)
 {
-	auto nRet = fsutil::seekFile(m_pf, offset, eFlag);
-	if (nRet >= 0)
+    auto nPos = fsutil::seekFile(m_pf, offset, eFlag);
+    if (nPos >= 0)
 	{
-		m_uPos = nRet;
+        m_uPos = (unsigned)nPos;
 	}
 
 	return m_uPos;
@@ -81,14 +81,14 @@ int64_t CAudioOpaque::seek(int64_t offset, E_SeekFileFlag eFlag)
 
 int CAudioOpaque::read(uint8_t *buf, size_t size)
 {
-    size_t uRet = fread(buf, 1, size, m_pf);
-    if (0 == uRet)
+    size_t uCount = fread(buf, 1, size, m_pf);
+    if (0 == uCount)
     {
         return -1;
     }
 
-	m_uPos += uRet;
-	return uRet;
+    m_uPos += uCount;
+    return uCount;
 }
 
 int CPlayer::InitSDK()
@@ -137,19 +137,19 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	__decoder.cancel();
 	m_thread.cancel();
 
-    if (__decoder.open(bForce48000) != E_DecoderRetCode::DRC_Success)
-	{
-		return false;
-	}
-
     m_thread.start([&, cbFinish]() {
-        E_DecodeStatus eStatus = __decoder.start();
-		_onFinish(eStatus);
+        E_DecodeStatus eStatus = E_DecodeStatus::DS_Finished;
+        auto eRet = __decoder.open(bForce48000);
+        if (E_DecoderRetCode::DRC_Success == eRet)
+        {
+            eStatus = __decoder.start();
+        }
 
-		if (cbFinish)
-		{
-			cbFinish(eStatus);
-		}
+        _onFinish(eStatus);
+        if (cbFinish)
+        {
+            cbFinish(eStatus);
+        }
 	});
 
 	if (0 != uStartPos)

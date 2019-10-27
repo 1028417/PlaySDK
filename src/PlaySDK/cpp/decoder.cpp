@@ -3,19 +3,6 @@
 
 #include "decoder.h"
 
-void Decoder::setVolume(uint8_t volume)
-{
-	m_audioDecoder.setVolume(volume);
-}
-
-void Decoder::seek(uint64_t pos)
-{
-	//if (-1 == m_seekPos)
-	{
-		m_seekPos = pos;
-	}
-}
-
 static int read_file(void *opaque, uint8_t *buf, int bufSize)
 {
     CAudioOpaque& audioOpaque = *(CAudioOpaque*)opaque;
@@ -33,7 +20,7 @@ static int read_file(void *opaque, uint8_t *buf, int bufSize)
             return AVERROR_EOF;
         }
 
-        for (UINT uIdx = 0; uIdx < 100; )
+        for (UINT uIdx = 0; uIdx < 50; )
         {
             auto eStatus = audioOpaque.decodeStatus();
             if (E_DecodeStatus::DS_Cancel == eStatus)
@@ -269,6 +256,11 @@ E_DecodeStatus Decoder::start()
 	return m_DecodeStatus.eDecodeStatus;
 }
 
+void Decoder::cancel()
+{
+    m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
+}
+
 void Decoder::pause()
 {
 	if (E_DecodeStatus::DS_Decoding == m_DecodeStatus.eDecodeStatus)
@@ -292,9 +284,17 @@ void Decoder::resume()
 	}
 }
 
-void Decoder::cancel()
+void Decoder::setVolume(uint8_t volume)
 {
-	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
+    m_audioDecoder.setVolume(volume);
+}
+
+void Decoder::seek(uint64_t pos)
+{
+    //if (-1 == m_seekPos)
+    {
+        m_seekPos = pos;
+    }
 }
 
 void Decoder::_cleanup()
