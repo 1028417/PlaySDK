@@ -138,7 +138,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	m_thread.cancel();
 
     m_thread.start([&, cbFinish]() {
-        E_DecodeStatus eStatus = E_DecodeStatus::DS_Finished;
+        E_DecodeStatus eStatus = E_DecodeStatus::DS_OpenFail;
         auto eRet = __decoder.open(bForce48000);
         if (E_DecoderRetCode::DRC_Success == eRet)
         {

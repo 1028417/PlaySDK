@@ -153,14 +153,14 @@ E_DecoderRetCode Decoder::open(bool bForce48000)
 	if (eRet != E_DecoderRetCode::DRC_Success)
 	{
 		_cleanup();
-		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
+        m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_OpenFail;
 		return eRet;
 	}
 
 	if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioIndex], bForce48000))
 	{
 		_cleanup();
-		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
+        m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_OpenFail;
 		return E_DecoderRetCode::DRC_InitAudioDevFail;
 	}
 
@@ -179,7 +179,7 @@ E_DecodeStatus Decoder::start()
 	{
 		if (E_DecodeStatus::DS_Paused == m_DecodeStatus.eDecodeStatus)
 		{
-            mtutil::usleep(10);
+            mtutil::usleep(50);
 			continue;
 		}
 		else if (E_DecodeStatus::DS_Decoding != m_DecodeStatus.eDecodeStatus)
@@ -217,10 +217,8 @@ E_DecodeStatus Decoder::start()
 		/* judge haven't reall all frame */
 		int nRet = av_read_frame(m_pFormatCtx, &packet);
 		if (nRet < 0)
-		{
-			//QDebug() << "Read file completed.";
+        {
             bReadFinished = true;
-            //mtutil::usleep(10);
 			break;
 		}
 
@@ -245,7 +243,7 @@ E_DecodeStatus Decoder::start()
 			goto seek;
 		}
 
-        mtutil::usleep(10);
+        mtutil::usleep(50);
 	}
 
     /* close audio device */
