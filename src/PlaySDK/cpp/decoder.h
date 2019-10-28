@@ -19,17 +19,11 @@ enum class E_DecoderRetCode
 class Decoder
 {
 public:
-	Decoder(class IAudioOpaque& AudioOpaque)
-		: m_AudioOpaque(AudioOpaque)
-		, m_audioDecoder(m_DecodeStatus)
+	Decoder() : m_audioDecoder(m_DecodeStatus)
 	{
 	}
 	
-	~Decoder() {}
-
 private:
-	class IAudioOpaque& m_AudioOpaque;
-
 	AudioDecoder m_audioDecoder;
 
 	tagDecodeStatus m_DecodeStatus;
@@ -47,7 +41,7 @@ private:
 	static int _readOpaque(void *decoder, uint8_t *buf, int bufSize);
 	static int64_t _seekOpaque(void *decoder, int64_t offset, int whence);
 
-	E_DecoderRetCode _open(const wchar_t* szFile = NULL);
+	E_DecoderRetCode _open(IAudioOpaque& AudioOpaque);
 
 	E_DecoderRetCode _checkStream();
 
@@ -69,9 +63,9 @@ public:
 		return m_duration;
 	}
 
-	uint32_t check(const wstring& strFile);
+	uint32_t check(IAudioOpaque& AudioOpaque);
 
-	E_DecoderRetCode open(bool bForce48000, const wchar_t *szFile=NULL);
+	E_DecoderRetCode open(bool bForce48000, IAudioOpaque& AudioOpaque);
 
 	E_DecodeStatus start();
 

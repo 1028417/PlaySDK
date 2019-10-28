@@ -2,7 +2,7 @@
 
 #include "util/util.h"
 
-extern const ITxtWriter& g_logger;
+extern ITxtWriter& g_logger;
 
 extern "C"
 {

@@ -4,7 +4,7 @@
 #include "decoder.h"
 
 static CUTF8Writer m_logger;
-const ITxtWriter& g_logger(m_logger);
+ITxtWriter& g_logger(m_logger);
 
 #if !__windows
 #define _aligned_free(p) free(p)
@@ -20,7 +20,7 @@ CAudioOpaque::CAudioOpaque()
     (void)posix_memalign(&m_pDecoder, 16, sizeof(Decoder));
 #endif
 
-    new (m_pDecoder) Decoder(*this);
+    new (m_pDecoder) Decoder;
 }
 
 CAudioOpaque::~CAudioOpaque()
@@ -60,7 +60,7 @@ int CAudioOpaque::open(const wstring& strFile)
 
 UINT CAudioOpaque::checkDuration()
 {
-	return ((Decoder*)m_pDecoder)->check(file());
+	return ((Decoder*)m_pDecoder)->check(*this);
 }
 
 E_DecodeStatus CAudioOpaque::decodeStatus()
@@ -68,9 +68,9 @@ E_DecodeStatus CAudioOpaque::decodeStatus()
 	return ((Decoder*)m_pDecoder)->decodeStatus();
 }
 
-int64_t CAudioOpaque::seek(int64_t offset, E_SeekFileFlag eFlag)
+int64_t CAudioOpaque::seek(int64_t offset, int origin)
 {
-    auto nPos = fsutil::seekFile(m_pf, offset, eFlag);
+    long long nPos = fsutil::lSeek64(m_pf, (int32_t)offset, origin);
     if (nPos >= 0)
 	{
         m_uPos = (unsigned)nPos;
@@ -137,12 +137,10 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	__decoder.cancel();
 	m_thread.cancel();
 
-	const wchar_t *szFile = NULL;
-	cauto strFile = m_AudioOpaque.file();
-	if (!strFile.empty())
+	bool bLocalFile = m_AudioOpaque.isLocalFile();
+	if (bLocalFile)
 	{
-		szFile = strFile.c_str();
-		auto eRet = __decoder.open(bForce48000, szFile);
+		auto eRet = __decoder.open(bForce48000, m_AudioOpaque);
 		if (eRet != E_DecoderRetCode::DRC_Success)
 		{
 			if (cbFinish)
@@ -160,9 +158,9 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	}
 
     m_thread.start([=]() {
-		if (NULL == szFile)
+		if (!bLocalFile)
 		{
-			auto eRet = __decoder.open(bForce48000);
+			auto eRet = __decoder.open(bForce48000, m_AudioOpaque);
 			if (eRet != E_DecoderRetCode::DRC_Success)
 			{
 				if (cbFinish)
