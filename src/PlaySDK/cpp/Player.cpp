@@ -60,7 +60,7 @@ int CAudioOpaque::open(const wstring& strFile)
 
 UINT CAudioOpaque::checkDuration()
 {
-	return ((Decoder*)m_pDecoder)->check();
+	return ((Decoder*)m_pDecoder)->check(file());
 }
 
 E_DecodeStatus CAudioOpaque::decodeStatus()
@@ -137,25 +137,54 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	__decoder.cancel();
 	m_thread.cancel();
 
-    m_thread.start([&, cbFinish]() {
-        E_DecodeStatus eStatus = E_DecodeStatus::DS_OpenFail;
-        auto eRet = __decoder.open(bForce48000);
-        if (E_DecoderRetCode::DRC_Success == eRet)
-        {
-            eStatus = __decoder.start();
-        }
-
-        _onFinish(eStatus);
-        if (cbFinish)
-        {
-            cbFinish(eStatus);
-        }
-	});
-
-	if (0 != uStartPos)
+	const wchar_t *szFile = NULL;
+	cauto strFile = m_AudioOpaque.file();
+	if (!strFile.empty())
 	{
-		__decoder.seek(uStartPos);
+		szFile = strFile.c_str();
+		auto eRet = __decoder.open(bForce48000, szFile);
+		if (eRet != E_DecoderRetCode::DRC_Success)
+		{
+			if (cbFinish)
+			{
+				cbFinish(E_DecodeStatus::DS_OpenFail);
+			}
+
+			return false;
+		}
+
+		if (0 != uStartPos)
+		{
+			__decoder.seek(uStartPos);
+		}
 	}
+
+    m_thread.start([=]() {
+		if (NULL == szFile)
+		{
+			auto eRet = __decoder.open(bForce48000);
+			if (eRet != E_DecoderRetCode::DRC_Success)
+			{
+				if (cbFinish)
+				{
+					cbFinish(E_DecodeStatus::DS_OpenFail);
+				}
+
+				return;
+			}
+
+			if (0 != uStartPos)
+			{
+				__decoder.seek(uStartPos);
+			}
+		}
+
+		E_DecodeStatus eStatus = __decoder.start();
+		if (cbFinish)
+		{
+			cbFinish(eStatus);
+		}
+	});
 	
     return true;
 }
