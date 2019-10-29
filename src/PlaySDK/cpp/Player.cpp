@@ -77,13 +77,9 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
         return -1;
     }
 
-    long nPos = ftell(m_pf);
-    /*if (nPos >= 0)
-    {
-        m_uPos = (unsigned)nPos;
-    }*/
+    //m_uPos = (uint32_t)ftell(m_pf);
 
-    return nPos;
+    return 0;
 }
 
 int CAudioOpaque::read(uint8_t *buf, size_t size)
