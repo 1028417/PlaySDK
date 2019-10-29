@@ -37,10 +37,10 @@ void CAudioOpaque::close()
         m_pf = NULL;
     }
 
-    m_uPos = 0;
+    //m_uPos = 0;
 }
 
-int CAudioOpaque::open(const wstring& strFile)
+long CAudioOpaque::open(const wstring& strFile)
 {
     m_pf = fsutil::fopen(strFile, "rb");
     if (NULL == m_pf)
@@ -48,7 +48,9 @@ int CAudioOpaque::open(const wstring& strFile)
         return -1;
     }
 
-    int nFileSize = fsutil::GetFileSize(m_pf);
+    (void)fseek(m_pf, 0, SEEK_END);
+    long nFileSize = (UINT)ftell(m_pf);
+    (void)fseek(m_pf, 0, SEEK_SET);
     if (nFileSize <= 0)
     {
         fclose(m_pf);
@@ -70,13 +72,18 @@ E_DecodeStatus CAudioOpaque::decodeStatus()
 
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
 {
-    long long nPos = fsutil::lSeek64(m_pf, (int32_t)offset, origin);
-    if (nPos >= 0)
-	{
-        m_uPos = (unsigned)nPos;
-	}
+    if (0 != fseek(m_pf, (long)offset, origin))
+    {
+        return -1;
+    }
 
-	return m_uPos;
+    long nPos = ftell(m_pf);
+    /*if (nPos >= 0)
+    {
+        m_uPos = (unsigned)nPos;
+    }*/
+
+    return nPos;
 }
 
 int CAudioOpaque::read(uint8_t *buf, size_t size)
@@ -87,7 +94,7 @@ int CAudioOpaque::read(uint8_t *buf, size_t size)
         return -1;
     }
 
-    m_uPos += uCount;
+    //m_uPos += uCount;
     return uCount;
 }
 
