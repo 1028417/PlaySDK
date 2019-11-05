@@ -96,8 +96,11 @@ int CAudioOpaque::read(uint8_t *buf, size_t size)
 
 int CPlayer::InitSDK()
 {
-    m_logger.open(L"playsdk.log", true);
-    g_logger >> "InitSDK";
+	if (!m_logger.is_open())
+	{
+		m_logger.open(L"playsdk.log", true);
+		g_logger >> "InitSDK";
+	}
 
 #if __android
     return CSLESEngine::init();
