@@ -65,9 +65,14 @@ UINT CAudioOpaque::checkDuration()
 	return ((Decoder*)m_pDecoder)->check(*this);
 }
 
-E_DecodeStatus CAudioOpaque::decodeStatus()
+E_DecodeStatus CAudioOpaque::decodeStatus() const
 {
-	return ((Decoder*)m_pDecoder)->decodeStatus();
+	return ((const Decoder*)m_pDecoder)->decodeStatus();
+}
+
+UINT CAudioOpaque::bitRate() const
+{
+    return (UINT)((const Decoder*)m_pDecoder)->bitRate();
 }
 
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
@@ -146,8 +151,8 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	__decoder.cancel();
 	m_thread.cancel();
 
-	bool bLocalFile = m_AudioOpaque.isLocalFile();
-	if (bLocalFile)
+	bool bOnline = m_AudioOpaque.isOnline();
+	if (!bOnline)
 	{
 		auto eRet = __decoder.open(bForce48000, m_AudioOpaque);
 		if (eRet != E_DecoderRetCode::DRC_Success)
@@ -167,7 +172,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	}
 
     m_thread.start([=]() {
-		if (!bLocalFile)
+		if (bOnline)
 		{
 			auto eRet = __decoder.open(bForce48000, m_AudioOpaque);
 			if (eRet != E_DecoderRetCode::DRC_Success)

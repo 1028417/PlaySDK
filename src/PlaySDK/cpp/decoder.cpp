@@ -5,12 +5,39 @@
 
 int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 {
-	IAudioOpaque *audioOpaque = (IAudioOpaque*)opaque;
+    IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
 
     int nReadSize = 0;
     while (true)
-    {
-        nReadSize = audioOpaque->read(buf, (size_t)bufSize);
+    {        
+        auto eStatus = audioOpaque.decodeStatus();
+        if (E_DecodeStatus::DS_Cancel == eStatus)//E_DecodeStatus::DS_Finished E_DecodeStatus::DS_OpenFail
+        {
+            return AVERROR_EOF;
+        }
+        else if (E_DecodeStatus::DS_Paused == eStatus)
+        {
+            break;
+        }
+        else if (E_DecodeStatus::DS_Decoding == eStatus)
+        {
+            if (audioOpaque.isOnline())
+            {
+                auto byteRate = audioOpaque.bitRate()/8;
+                if (!audioOpaque.checkdownloadDataSize((size_t)byteRate*5))
+                {
+                    mtutil::usleep(100);
+                    continue;
+                }
+            }
+        }
+//        else // E_DecodeStatus::DS_Opening
+//        {
+//            mtutil::usleep(100);
+//            continue;
+//        }
+
+        nReadSize = audioOpaque.read(buf, (size_t)bufSize);
         if (nReadSize > 0)
         {
             break;
@@ -18,27 +45,6 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
         if (nReadSize < 0)
         {
             return AVERROR_EOF;
-        }
-
-        for (UINT uIdx = 0; uIdx < 50; )
-        {
-            auto eStatus = audioOpaque->decodeStatus();
-            if (E_DecodeStatus::DS_Cancel == eStatus)
-            {
-                return AVERROR_EOF;
-            }
-
-            if (eStatus != E_DecodeStatus::DS_Paused)
-            {
-                uIdx++;
-            }
-
-            mtutil::usleep(100);
-
-            if (E_DecodeStatus::DS_Opening == eStatus)
-            {
-                break;
-            }
         }
     }
 
@@ -60,21 +66,27 @@ E_DecoderRetCode Decoder::_checkStream()
 {
 	if (0 == avformat_find_stream_info(m_pFormatCtx, NULL))
 	{
-		for (unsigned int i = 0; i < m_pFormatCtx->nb_streams; i++)
+        for (m_audioIndex = 0; m_audioIndex < (int)m_pFormatCtx->nb_streams; m_audioIndex++)
 		{
-			if (m_pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-			{
-				m_audioIndex = i;
-
-				if (m_pFormatCtx->duration > 0)
+            AVStream& stream = *m_pFormatCtx->streams[m_audioIndex];
+            AVCodecParameters& codecpar = *stream.codecpar;
+            if (AVMEDIA_TYPE_AUDIO == codecpar.codec_type)
+            {
+                if (m_pFormatCtx->duration > 0)
 				{
 					m_duration = uint32_t(m_pFormatCtx->duration / __1e6);
-				}
+                }
 				else
-				{
-					m_duration = 0;
+                {
+                    m_duration = 0;
 					//return E_DecoderRetCode::DRC_InvalidAudioStream;
 				}
+
+                m_bitRate = 0;
+                if (m_pFormatCtx->bit_rate > 0)
+                {
+                    m_bitRate = (uint32_t)m_pFormatCtx->bit_rate;
+                }
 
 				return E_DecoderRetCode::DRC_Success;
 			}
@@ -93,7 +105,7 @@ E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
 		return E_DecoderRetCode::DRC_Fail;
 	}
 
-	cauto strFile = AudioOpaque.localFile();
+	cauto strFile = AudioOpaque.localFilePath();
 	if (!strFile.empty())
 	{
 		int nRet = avformat_open_input(&m_pFormatCtx, strutil::toUtf8(strFile).c_str(), NULL, NULL);
@@ -221,7 +233,8 @@ E_DecodeStatus Decoder::start()
 			break;
 		}
 
-		if (packet.stream_index == m_audioIndex) {
+        if (packet.stream_index == m_audioIndex)
+		{
 			if (m_audioDecoder.packetEnqueue(packet) > 1000)
 			{
 				mtutil::usleep(50);
@@ -310,9 +323,8 @@ void Decoder::_cleanup()
 		m_avio = NULL;
 	}
 	
-	m_audioIndex = -1;
-
     m_duration = 0;
+    m_bitRate = 0;
 
 	m_seekPos = -1;
 }

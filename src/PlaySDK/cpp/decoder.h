@@ -34,6 +34,7 @@ private:
 	int m_audioIndex = 0;
 
 	uint32_t m_duration = 0;
+	uint32_t m_bitRate = 0;
 
 	int64_t m_seekPos = -1;
 
@@ -58,10 +59,14 @@ public:
 		return m_audioDecoder.clock();
 	}
 
-	uint32_t duration() const
-	{
-		return m_duration;
-	}
+        uint32_t duration() const
+        {
+                return m_duration;
+        }
+		uint32_t bitRate() const
+        {
+                return m_bitRate;
+        }
 
 	uint32_t check(IAudioOpaque& AudioOpaque);
 
