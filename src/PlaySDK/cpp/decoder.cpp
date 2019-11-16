@@ -25,25 +25,35 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
         }
         else if (E_DecodeStatus::DS_Decoding == eStatus)
         {
-            if (bOnlineAudio && bWaitFlag)
+            if (bOnlineAudio)
             {
-                long nReadableSize = audioOpaque.downloadDataSize();
-                if (nReadableSize >= 0)
+                long nPreserveSize = audioOpaque.checkPreserveDataSize();
+                if (bWaitFlag)
                 {
-                    UINT uByteRate = audioOpaque.byteRate();
-                    if (0 == uByteRate)
+                    if (nPreserveSize >= 0)
                     {
-                        uByteRate = 512000;
+                        UINT uByteRate = audioOpaque.byteRate();
+                        if (0 == uByteRate)
+                        {
+                            uByteRate = 512000;
+                        }
+
+                        if (nPreserveSize < (long)uByteRate*5)
+                        {
+                            mtutil::usleep(50);
+                            continue;
+                        }
                     }
 
-                    if (nReadableSize < (long)uByteRate*5)
+                    bWaitFlag = false;
+                }
+                else
+                {
+                    if (0 == nPreserveSize)
                     {
-                        mtutil::usleep(50);
-                        continue;
+                        bWaitFlag = true;
                     }
                 }
-
-                bWaitFlag = false;
             }
         }
 
@@ -56,8 +66,6 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
         {
             return AVERROR_EOF;
         }
-
-        bWaitFlag = true;
 
         mtutil::usleep(10);
     }
