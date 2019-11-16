@@ -7,9 +7,12 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 {
     IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
 
+    bool bOnlineAudio = audioOpaque.isOnline();
+    bool bWaitFlag = false;
+
     int nReadSize = 0;
     while (true)
-    {        
+    {
         auto eStatus = audioOpaque.decodeStatus();
         if (E_DecodeStatus::DS_Cancel == eStatus)//E_DecodeStatus::DS_Finished E_DecodeStatus::DS_OpenFail
         {
@@ -17,25 +20,32 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
         }
         else if (E_DecodeStatus::DS_Paused == eStatus)
         {
-            break;
+            mtutil::usleep(50);
+            continue;
         }
         else if (E_DecodeStatus::DS_Decoding == eStatus)
         {
-            if (audioOpaque.isOnline())
+            if (bOnlineAudio && bWaitFlag)
             {
-                auto byteRate = audioOpaque.bitRate()/8;
-                if (!audioOpaque.checkdownloadDataSize((size_t)byteRate*5))
+                long nReadableSize = audioOpaque.downloadDataSize();
+                if (nReadableSize >= 0)
                 {
-                    mtutil::usleep(100);
-                    continue;
+                    UINT uByteRate = audioOpaque.byteRate();
+                    if (0 == uByteRate)
+                    {
+                        uByteRate = 512000;
+                    }
+
+                    if (nReadableSize < (long)uByteRate*5)
+                    {
+                        mtutil::usleep(50);
+                        continue;
+                    }
                 }
+
+                bWaitFlag = false;
             }
         }
-//        else // E_DecodeStatus::DS_Opening
-//        {
-//            mtutil::usleep(100);
-//            continue;
-//        }
 
         nReadSize = audioOpaque.read(buf, (size_t)bufSize);
         if (nReadSize > 0)
@@ -46,6 +56,10 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
         {
             return AVERROR_EOF;
         }
+
+        bWaitFlag = true;
+
+        mtutil::usleep(10);
     }
 
     return nReadSize;
@@ -82,10 +96,10 @@ E_DecoderRetCode Decoder::_checkStream()
 					//return E_DecoderRetCode::DRC_InvalidAudioStream;
 				}
 
-                m_bitRate = 0;
+                m_byteRate = 0;
                 if (m_pFormatCtx->bit_rate > 0)
                 {
-                    m_bitRate = (uint32_t)m_pFormatCtx->bit_rate;
+                    m_byteRate = uint32_t(m_pFormatCtx->bit_rate/8);
                 }
 
 				return E_DecoderRetCode::DRC_Success;
@@ -324,7 +338,7 @@ void Decoder::_cleanup()
 	}
 	
     m_duration = 0;
-    m_bitRate = 0;
+    m_byteRate = 0;
 
 	m_seekPos = -1;
 }

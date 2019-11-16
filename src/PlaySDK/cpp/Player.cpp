@@ -70,9 +70,9 @@ E_DecodeStatus CAudioOpaque::decodeStatus() const
 	return ((const Decoder*)m_pDecoder)->decodeStatus();
 }
 
-UINT CAudioOpaque::bitRate() const
+UINT CAudioOpaque::byteRate() const
 {
-    return (UINT)((const Decoder*)m_pDecoder)->bitRate();
+    return (UINT)((const Decoder*)m_pDecoder)->byteRate();
 }
 
 int64_t CAudioOpaque::seek(int64_t offset, int origin)

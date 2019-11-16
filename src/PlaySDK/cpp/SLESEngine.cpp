@@ -204,8 +204,8 @@ void CSLESEngine::_PcmCall()
         int len = m_cb(lpBuff);
         if (0 == len)
         {
-            g_logger >> "PcmSize: 0";
-            mtutil::usleep(1);
+            //g_logger >> "PcmSize: 0";
+            mtutil::usleep(50);
             continue;
         }
 
@@ -218,8 +218,8 @@ void CSLESEngine::_PcmCall()
         }
         else
         {
-            g_logger >> "PcmSize: -1";
-            mtutil::usleep(100);
+            //g_logger >> "PcmSize: -1";
+            mtutil::usleep(50);
             (*m_bf)->Enqueue(m_bf,"",1);
         }
 
