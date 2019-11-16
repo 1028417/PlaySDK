@@ -67,7 +67,7 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
             return AVERROR_EOF;
         }
 
-        mtutil::usleep(10);
+        mtutil::usleep(50);
     }
 
     return nReadSize;
