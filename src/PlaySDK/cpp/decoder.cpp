@@ -18,41 +18,44 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
         {
             return AVERROR_EOF;
         }
-        else if (E_DecodeStatus::DS_Paused == eStatus)
+        if (E_DecodeStatus::DS_Paused == eStatus)
         {
             mtutil::usleep(50);
             continue;
         }
-        else if (E_DecodeStatus::DS_Decoding == eStatus)
+
+        if (bOnlineAudio)
         {
-            if (bOnlineAudio)
+            long nPreserveSize = audioOpaque.checkPreserveDataSize();
+            if (bWaitFlag)
             {
-                long nPreserveSize = audioOpaque.checkPreserveDataSize();
-                if (bWaitFlag)
+                if (nPreserveSize >= 0)
                 {
-                    if (nPreserveSize >= 0)
+                    UINT uByteRate = audioOpaque.byteRate();
+                    if (0 == uByteRate)
                     {
-                        UINT uByteRate = audioOpaque.byteRate();
-                        if (0 == uByteRate)
-                        {
-                            uByteRate = 512000;
-                        }
-
-                        if (nPreserveSize < (long)uByteRate*5)
-                        {
-                            mtutil::usleep(50);
-                            continue;
-                        }
+                        uByteRate = 512000;
                     }
 
-                    bWaitFlag = false;
+                    UINT uWaitSize = uByteRate/2;
+					if (E_DecodeStatus::DS_Decoding == eStatus)
+					{
+                        uWaitSize = uByteRate*6;
+					}
+                    if (nPreserveSize < (long)uWaitSize)
+                    {
+                        mtutil::usleep(50);
+                        continue;
+                    }
                 }
-                else
+
+                bWaitFlag = false;
+            }
+            else
+            {
+                if (0 == nPreserveSize)
                 {
-                    if (0 == nPreserveSize)
-                    {
-                        bWaitFlag = true;
-                    }
+                    bWaitFlag = true;
                 }
             }
         }
