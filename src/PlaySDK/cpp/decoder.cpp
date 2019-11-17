@@ -37,11 +37,11 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
                         uByteRate = 512000;
                     }
 
-                    UINT uWaitSize = uByteRate/2;
-					if (E_DecodeStatus::DS_Decoding == eStatus)
-					{
+                    UINT uWaitSize = uByteRate;
+                    if (E_DecodeStatus::DS_Decoding == eStatus)
+                    {
                         uWaitSize = uByteRate*6;
-					}
+                    }
                     if (nPreserveSize < (long)uWaitSize)
                     {
                         mtutil::usleep(50);
