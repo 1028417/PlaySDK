@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= core
+QT       -= gui
 
 TARGET = xPlaySDK
 TEMPLATE = lib
