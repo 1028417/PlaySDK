@@ -40,7 +40,7 @@ void CAudioOpaque::close()
     //m_uPos = 0;
 }
 
-long CAudioOpaque::open(const wstring& strFile)
+long long CAudioOpaque::open(const wstring& strFile)
 {
     m_pf = fsutil::fopen(strFile, "rb");
     if (NULL == m_pf)
@@ -48,16 +48,15 @@ long CAudioOpaque::open(const wstring& strFile)
         return -1;
     }
 
-    (void)fseek(m_pf, 0, SEEK_END);
-    long nFileSize = (UINT)ftell(m_pf);
-    (void)fseek(m_pf, 0, SEEK_SET);
-    if (nFileSize <= 0)
-    {
-        fclose(m_pf);
-        m_pf = NULL;
-    }
-
-    return nFileSize;
+	long long nFileSize = fsutil::lSeek64(m_pf, 0, SEEK_END);
+	if (nFileSize <= 0)
+	{
+		fclose(m_pf);
+		m_pf = NULL;
+	}
+	(void)fsutil::lSeek64(m_pf, 0, SEEK_SET);
+    
+	return nFileSize;
 }
 
 UINT CAudioOpaque::checkDuration()
@@ -77,12 +76,13 @@ UINT CAudioOpaque::byteRate() const
 
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
 {
-    if (0 != fseek(m_pf, (long)offset, origin))
+	long long pos = fsutil::lSeek64(m_pf, offset, origin);
+	if (pos < 0)
     {
         return -1;
     }
 
-    //m_uPos = (uint32_t)ftell(m_pf);
+    //m_uPos = (uint64_t)pos;
 
     return 0;
 }
