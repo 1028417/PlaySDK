@@ -33,18 +33,17 @@ android {
     DESTDIR = ../../../XMusic/libs/armeabi-v7a
 } else {
     macx {
-        LIBS += -L../../../Common2.1/bin/mac  -lxutil \
+        LIBS += -L../../../XMusic/bin/mac  -lxutil \
                 ../../bin/mac/SDL2.framework/Versions/A/SDL2 \
                 -L../../bin/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
         #LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
         #        -framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
         #        -framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
 
-       platform = mac
+        platform = mac
         DESTDIR = ../../bin/mac
 
-        target.path = ../../../XMusic/bin/mac
-        INSTALLS += target
+        QMAKE_POST_LINK += cp -f ../../bin/mac/libxPlaySdk.dylib ../../../XMusic/bin/mac
     } else: ios {
         platform = ios
         DESTDIR = ../../../build/ioslib
@@ -55,8 +54,7 @@ android {
         platform = win
         DESTDIR = ../../bin
 
-        target.path = ../../../XMusic/bin
-        INSTALLS += target
+        QMAKE_POST_LINK += copy /Y ..\..\bin\xPlaySdk.dll ..\..\..\XMusic\bin
     }
 }
 
