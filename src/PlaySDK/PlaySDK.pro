@@ -31,31 +31,29 @@ android {
 
     platform = android
     DESTDIR = ../../../XMusic/libs/armeabi-v7a
+} else: macx {
+	LIBS += -L../../../XMusic/bin/mac  -lxutil \
+			../../bin/mac/SDL2.framework/Versions/A/SDL2 \
+			-L../../bin/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
+	#LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
+	#        -framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
+	#        -framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
+
+	platform = mac
+	DESTDIR = ../../bin/mac
+
+	QMAKE_POST_LINK += cp -f ../../bin/mac/libxPlaySDK*.dylib ../../../XMusic/bin/mac/
+} else: ios {
+	platform = ios
+	DESTDIR = ../../../build/ioslib
 } else {
-    macx {
-        LIBS += -L../../../XMusic/bin/mac  -lxutil \
-                ../../bin/mac/SDL2.framework/Versions/A/SDL2 \
-                -L../../bin/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
-        #LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
-        #        -framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
-        #        -framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
+	LIBS += -L../../../Common2.1/bin  -lxutil \
+			-L../../bin  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
 
-        platform = mac
-        DESTDIR = ../../bin/mac
+	platform = win
+	DESTDIR = ../../bin
 
-        QMAKE_POST_LINK += cp -f ../../bin/mac/libxPlaySDK*.dylib ../../../XMusic/bin/mac/
-    } else: ios {
-        platform = ios
-        DESTDIR = ../../../build/ioslib
-    } else {
-        LIBS += -L../../../Common2.1/bin  -lxutil \
-                -L../../bin  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
-
-        platform = win
-        DESTDIR = ../../bin
-
-        QMAKE_POST_LINK += copy /Y ..\..\bin\xPlaySdk.dll ..\..\..\XMusic\bin
-    }
+	QMAKE_POST_LINK += copy /Y ..\..\bin\xPlaySdk.dll ..\..\..\XMusic\bin
 }
 
 build_dir = ../../../build/xPlaySDK/$$platform
