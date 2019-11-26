@@ -113,14 +113,14 @@ bool CSLESEngine::_init()
     re = (*m_player)->GetInterface(m_player,SL_IID_PLAY,&m_playIf);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_logger << "GetInterface SL_IID_PLAY fail" >> re;
+        g_playsdkLogger << "GetInterface SL_IID_PLAY fail" >> re;
         return false;
     }
 
     re = (*m_player)->GetInterface(m_player,SL_IID_VOLUME,&m_volumeIf);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_logger << "GetInterface SL_IID_VOLUME fail" >> re;
+        g_playsdkLogger << "GetInterface SL_IID_VOLUME fail" >> re;
         return false;
     }
     setVolume(m_volume);
@@ -128,7 +128,7 @@ bool CSLESEngine::_init()
     re = (*m_player)->GetInterface(m_player,SL_IID_BUFFERQUEUE,&m_bf);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_logger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
+        g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
         return false;
     }
 
@@ -136,7 +136,7 @@ bool CSLESEngine::_init()
     re = (*m_bf)->RegisterCallback(m_bf, PcmCall, this);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_logger << "bf RegisterCallback fail" >> re;
+        g_playsdkLogger << "bf RegisterCallback fail" >> re;
         return false;
     }
 
@@ -244,7 +244,7 @@ void CSLESEngine::pause(bool bPause)
 
 void CSLESEngine::close()
 {
-    g_logger >> "SLES stoping";
+    g_playsdkLogger >> "SLES stoping";
 
     if (m_playIf)
     {
@@ -255,7 +255,7 @@ void CSLESEngine::close()
 
 void CSLESEngine::_destroy()
 {
-    g_logger >> "SLES destoy";
+    g_playsdkLogger >> "SLES destoy";
 
     if (m_mix)
     {
