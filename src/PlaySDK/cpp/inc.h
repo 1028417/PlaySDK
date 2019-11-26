@@ -2,8 +2,6 @@
 
 #include "util/util.h"
 
-extern ITxtWriter& g_logger;
-
 extern "C"
 {
 #define __STDC_CONSTANT_MACROS

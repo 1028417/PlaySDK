@@ -4,7 +4,7 @@
 #include "decoder.h"
 
 static CUTF8TxtWriter m_logger;
-ITxtWriter& g_logger(m_logger);
+ITxtWriter& g_playsdkLogger(m_logger);
 
 #if !__windows
 #define _aligned_free(p) free(p)
@@ -104,7 +104,7 @@ int CPlayer::InitSDK()
 	if (!m_logger.is_open())
 	{
 		m_logger.open(L"playsdk.log", true);
-		g_logger >> "InitSDK";
+		g_playsdkLogger >> "InitSDK";
 	}
 
 #if __android
@@ -113,7 +113,7 @@ int CPlayer::InitSDK()
     int nRet = CSDLEngine::init();
     if (nRet != 0)
     {
-        g_logger << "initSDLEngine fail: " >> CSDLEngine::getErrMsg();
+        g_playsdkLogger << "initSDLEngine fail: " >> CSDLEngine::getErrMsg();
     }
     return nRet;
 #endif
@@ -123,7 +123,7 @@ void CPlayer::QuitSDK()
 {
     if (m_logger.is_open())
     {
-        g_logger >> "QuitSDK";
+        g_playsdkLogger >> "QuitSDK";
         m_logger.close();
     }
 
