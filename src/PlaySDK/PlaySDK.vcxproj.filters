@@ -9,10 +9,10 @@
     <ClInclude Include="cpp\SDLEngine.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="audiodecoder.cpp" />
     <ClCompile Include="cpp\avpacketqueue.cpp" />
     <ClCompile Include="cpp\decoder.cpp" />
     <ClCompile Include="cpp\Player.cpp" />
     <ClCompile Include="cpp\SDLEngine.cpp" />
+    <ClCompile Include="cpp\audiodecoder.cpp" />
   </ItemGroup>
 </Project>

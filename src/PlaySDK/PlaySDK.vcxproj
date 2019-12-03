@@ -106,6 +106,12 @@
     <BuildLog>
       <Path />
     </BuildLog>
+    <PostBuildEvent>
+      <Command>Copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "$(ProjectDir)$(OutDir)..\..\XMusic\bin\"
+
+Copy /Y "$(ProjectDir)$(OutDir)..\libs\$(TargetName).lib" "$(ProjectDir)$(OutDir)..\..\XMusic\libs\"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -141,6 +147,12 @@
     <BuildLog>
       <Path />
     </BuildLog>
+    <PostBuildEvent>
+      <Command>Copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "$(ProjectDir)$(OutDir)..\..\XMusic\bin\"
+
+Copy /Y "$(ProjectDir)$(OutDir)..\libs\$(TargetName).lib" "$(ProjectDir)$(OutDir)..\..\XMusic\libs\"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
