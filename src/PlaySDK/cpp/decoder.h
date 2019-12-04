@@ -79,7 +79,12 @@ public:
 	void pause();
 	void resume();
 
-	void seek(uint64_t pos);
+        void seek(uint64_t pos);
+
+        void seekex(uint64_t pos)
+        {
+            m_audioDecoder.seek(pos);
+        }
 
 	void setVolume(uint8_t volume);
 };

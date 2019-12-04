@@ -215,14 +215,14 @@ int32_t AudioDecoder::_receiveFrame()
 
 	int32_t audioBufSize = _convertFrame(*frame);
 
-	if (AV_NOPTS_VALUE != frame->pts)
+    if (AV_NOPTS_VALUE != frame->pts)
+    {
+        m_clock = uint64_t(m_timeBase * frame->pts);
+    }
+    else if (audioBufSize > 0)
 	{
-		m_clock = uint64_t(m_timeBase * frame->pts);
-	}
-	if (audioBufSize > 0)
-	{
-		m_clock += uint64_t(audioBufSize*__1e6 / m_bytesPerSec);
-	}
+        m_clock += (uint64_t)audioBufSize * __1e6 / m_bytesPerSec;
+    }
 
 	av_frame_free(&frame);
 

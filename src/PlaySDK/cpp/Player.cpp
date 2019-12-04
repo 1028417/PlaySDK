@@ -222,6 +222,13 @@ void CPlayer::Seek(UINT uPos)
     __decoder.seek(uPos*__1e6);
 }
 
+void CPlayer::Seekex(UINT uPos)
+{
+    mutex_lock lock(m_mutex);
+
+    __decoder.seekex(uPos*__1e6);
+}
+
 void CPlayer::Pause()
 {
     mutex_lock lock(m_mutex);
