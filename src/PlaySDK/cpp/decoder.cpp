@@ -260,9 +260,9 @@ E_DecodeStatus Decoder::start()
 
         if (packet.stream_index == m_audioIndex)
 		{
-			if (m_audioDecoder.packetEnqueue(packet) > 1000)
+			if (m_audioDecoder.packetEnqueue(packet) > 100)
 			{
-				mtutil::usleep(50);
+				mtutil::usleep(30);
 			}
 		}
 		else
