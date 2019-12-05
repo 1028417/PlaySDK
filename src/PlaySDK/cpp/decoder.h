@@ -72,19 +72,14 @@ public:
 
 	E_DecoderRetCode open(bool bForce48000, IAudioOpaque& AudioOpaque);
 
-	E_DecodeStatus start();
+	E_DecodeStatus start(IAudioOpaque& AudioOpaque);
 
 	void cancel();
 
 	void pause();
 	void resume();
-
-        void seek(uint64_t pos);
-
-        void seekex(uint64_t pos)
-        {
-            m_audioDecoder.seek(pos);
-        }
+	
+	void seek(uint64_t pos);
 
 	void setVolume(uint8_t volume);
 };

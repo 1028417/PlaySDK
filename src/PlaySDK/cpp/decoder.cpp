@@ -203,7 +203,7 @@ E_DecoderRetCode Decoder::open(bool bForce48000, IAudioOpaque& AudioOpaque)
 	return E_DecoderRetCode::DRC_Success;
 }
 
-E_DecodeStatus Decoder::start()
+E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
 {    
 	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
@@ -224,8 +224,7 @@ E_DecodeStatus Decoder::start()
 		}
 
 		/* this seek just use in playing music, while read finished
-		 * & have out of loop, then jump back to seek position
-		 */
+		 * & have out of loop, then jump back to seek position */
 	seek:
 		if (m_seekPos>=0)
 		{

@@ -191,7 +191,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 			}
 		}
 
-		E_DecodeStatus eStatus = __decoder.start();
+		E_DecodeStatus eStatus = __decoder.start(m_AudioOpaque);
 		if (cbFinish)
 		{
 			cbFinish(eStatus);
@@ -220,13 +220,6 @@ void CPlayer::Seek(UINT uPos)
     mutex_lock lock(m_mutex);
 
     __decoder.seek(uPos*__1e6);
-}
-
-void CPlayer::Seekex(UINT uPos)
-{
-    mutex_lock lock(m_mutex);
-
-    __decoder.seekex(uPos*__1e6);
 }
 
 void CPlayer::Pause()

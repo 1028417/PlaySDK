@@ -108,10 +108,12 @@ int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, int nMaxBufSize, uint8_t*& 
 		m_clock = m_seekPos;
 		m_seekPos = -1;
 
-		avcodec_flush_buffers(m_codecCtx);
-
 		m_DecodeData.sendReturn = 0;
 		m_DecodeData.audioBufSize = 0;
+
+		avcodec_flush_buffers(m_codecCtx);
+
+		mtutil::usleep(10);
 
 		return 0;
 	}
@@ -170,7 +172,7 @@ int32_t AudioDecoder::_decodePacket(bool& bQueedEmpty)
 	m_DecodeData.sendReturn = avcodec_send_packet(m_codecCtx, &packet);
 	if (m_DecodeData.sendReturn < 0 && m_DecodeData.sendReturn != AVERROR(EAGAIN) && m_DecodeData.sendReturn != AVERROR_EOF)
 	{
-		//QDebug << "Audio send to decoder failed, error code: " << sendReturn;'
+        // "Audio send to decoder failed, error code: " << sendReturn;'
 		av_packet_unref(&packet);
 		return -1;
 	}
@@ -195,7 +197,7 @@ int32_t AudioDecoder::_receiveFrame()
 	AVFrame *frame = av_frame_alloc();
 	if (NULL == frame)
 	{
-		//QDebug << "Decode audio frame alloc failed.";
+        // "Decode audio frame alloc failed.";
 		return -1;
 	}
 
@@ -204,7 +206,7 @@ int32_t AudioDecoder::_receiveFrame()
 	{
 		av_frame_free(&frame);
 
-		//QDebug << "Audio frame decode failed, error code: " << ret;
+        // "Audio frame decode failed, error code: " << ret;
 		if (iRet == AVERROR(EAGAIN))
 		{
 			return 0;
@@ -283,8 +285,9 @@ int32_t AudioDecoder::_convertFrame(AVFrame& frame)
 			return -1;
 		}
 
-		if (sampleSize == outCount) {
-			//QDebug << "audio buffer is probably too small";
+        if (sampleSize == outCount)
+        {
+            // "audio buffer is probably too small";
 			if (swr_init(m_DecodeData.aCovertCtx) < 0) {
 				swr_free(&m_DecodeData.aCovertCtx);
 				m_DecodeData.aCovertCtx = NULL;
