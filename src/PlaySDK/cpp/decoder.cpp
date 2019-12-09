@@ -205,6 +205,8 @@ E_DecoderRetCode Decoder::open(bool bForce48000, IAudioOpaque& AudioOpaque)
 
 E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
 {    
+    (void)AudioOpaque;
+
 	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
     auto& bReadFinished = m_DecodeStatus.bReadFinished;
