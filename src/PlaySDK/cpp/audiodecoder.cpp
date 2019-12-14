@@ -24,7 +24,7 @@ AudioDecoder::AudioDecoder(tagDecodeStatus& DecodeStatus)
 {
 }
 
-bool AudioDecoder::open(AVStream& stream, bool bForce48000)
+bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
 {
 	m_timeBase = av_q2d(stream.time_base)*__1e6;
 
@@ -68,7 +68,7 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48000)
     }
 
 	int sample_rate = m_codecCtx->sample_rate;
-	if (bForce48000)
+	if (bForce48KHz)
 	{
         sample_rate = MAX(sample_rate, 48000);
 	}

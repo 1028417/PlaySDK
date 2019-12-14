@@ -144,7 +144,7 @@ void CPlayer::Stop()
 	m_thread.cancel();
 }
 
-bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cbFinish)
+bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const CB_PlayFinish& cbFinish)
 {
     mutex_lock lock(m_mutex);
 
@@ -154,7 +154,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
 	bool bOnline = m_AudioOpaque.isOnline();
 	if (!bOnline)
 	{
-		auto eRet = __decoder.open(bForce48000, m_AudioOpaque);
+		auto eRet = __decoder.open(bForce48KHz, m_AudioOpaque);
 		if (eRet != E_DecoderRetCode::DRC_Success)
 		{
 			if (cbFinish)
@@ -174,7 +174,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48000, const CB_PlayFinish& cb
     m_thread.start([=]() {
 		if (bOnline)
 		{
-			auto eRet = __decoder.open(bForce48000, m_AudioOpaque);
+			auto eRet = __decoder.open(bForce48KHz, m_AudioOpaque);
 			if (eRet != E_DecoderRetCode::DRC_Success)
 			{
 				if (cbFinish)

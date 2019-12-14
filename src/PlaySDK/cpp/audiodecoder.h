@@ -86,7 +86,7 @@ public:
         m_SLEngine.setVolume(volume);
 	}
 
-    bool open(AVStream& stream, bool bForce48000=false);
+    bool open(AVStream& stream, bool bForce48KHz=false);
 
 	void pause(bool bPause)
 	{

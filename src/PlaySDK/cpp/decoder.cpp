@@ -181,7 +181,7 @@ uint32_t Decoder::check(IAudioOpaque& AudioOpaque)
 	return uDuration;
 }
 
-E_DecoderRetCode Decoder::open(bool bForce48000, IAudioOpaque& AudioOpaque)
+E_DecoderRetCode Decoder::open(bool bForce48KHz, IAudioOpaque& AudioOpaque)
 {
 	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Opening;
 
@@ -193,7 +193,7 @@ E_DecoderRetCode Decoder::open(bool bForce48000, IAudioOpaque& AudioOpaque)
 		return eRet;
 	}
 
-	if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioIndex], bForce48000))
+	if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioIndex], bForce48KHz))
 	{
 		_cleanup();
         m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_OpenFail;

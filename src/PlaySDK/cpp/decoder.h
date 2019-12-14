@@ -70,7 +70,7 @@ public:
 
 	uint32_t check(IAudioOpaque& AudioOpaque);
 
-	E_DecoderRetCode open(bool bForce48000, IAudioOpaque& AudioOpaque);
+	E_DecoderRetCode open(bool bForce48KHz, IAudioOpaque& AudioOpaque);
 
 	E_DecodeStatus start(IAudioOpaque& AudioOpaque);
 
