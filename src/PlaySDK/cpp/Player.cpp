@@ -87,7 +87,7 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
     return 0;
 }
 
-int CAudioOpaque::read(byte_t *buf, size_t size)
+int CAudioOpaque::read(byte_p buf, size_t size)
 {
     size_t uCount = fread(buf, 1, size, m_pf);
     if (0 == uCount)

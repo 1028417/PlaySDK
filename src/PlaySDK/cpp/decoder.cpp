@@ -141,8 +141,8 @@ E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
 	}
 	else
 	{
-		byte_t *avioBuff = NULL;
-		if (NULL == (avioBuff = (byte_t*)av_malloc(__avioBuffSize)))
+		byte_p avioBuff = NULL;
+		if (NULL == (avioBuff = (byte_p)av_malloc(__avioBuffSize)))
 		{
 			return E_DecoderRetCode::DRC_Fail;
 		}
