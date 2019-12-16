@@ -11,6 +11,8 @@ TEMPLATE = lib
 
 QMAKE_CXXFLAGS += -std=c++11 #c++1y #gnu++1y
 
+DEFINES += QT_DEPRECATED_WARNINGS __PlaySDKPrj
+
 SOURCES += cpp/Player.cpp \
     cpp/decoder.cpp \
     cpp/audiodecoder.cpp \
@@ -21,8 +23,6 @@ SOURCES += cpp/Player.cpp \
 HEADERS += ../../inc/Player.h  cpp/inc.h
 
 INCLUDEPATH += ../../../Common2.1/inc  ../../3rd/ffmpeg/include
-
-DEFINES += __PlaySDKPrj
 
 android {
     LIBS += -L../../../XMusic/libs/armeabi-v7a  -lxutil \
