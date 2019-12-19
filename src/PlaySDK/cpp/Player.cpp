@@ -159,7 +159,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 		{
 			if (cbStop)
 			{
-				cbStop(true);
+                cbStop(__decoder.decodeStatus() != E_DecodeStatus::DS_Cancel);
 			}
 			
 			return false;
@@ -179,7 +179,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 			{
 				if (cbStop)
 				{
-					cbStop(true);
+                    cbStop(__decoder.decodeStatus() != E_DecodeStatus::DS_Cancel);
 				}
 
 				return;
