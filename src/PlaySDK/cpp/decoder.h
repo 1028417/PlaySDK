@@ -12,7 +12,7 @@ enum class E_DecoderRetCode
 	, DRC_Fail
 	, DRC_OpenFail
 	, DRC_InvalidAudioStream
-    , DRC_NoAudioStream
+	, DRC_NoAudioStream
 	, DRC_InitAudioDevFail
 };
 

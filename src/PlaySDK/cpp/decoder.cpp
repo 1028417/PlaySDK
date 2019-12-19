@@ -183,20 +183,30 @@ uint32_t Decoder::check(IAudioOpaque& AudioOpaque)
 
 E_DecoderRetCode Decoder::open(bool bForce48KHz, IAudioOpaque& AudioOpaque)
 {
-	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Opening;
+	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
 	auto eRet = _open(AudioOpaque);
 	if (eRet != E_DecoderRetCode::DRC_Success)
-	{
-		_cleanup();
-        m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_OpenFail;
+    {
+        _cleanup();
+
+		if (m_DecodeStatus.eDecodeStatus != E_DecodeStatus::DS_Cancel)
+		{
+			m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Finished;
+		}
+
 		return eRet;
 	}
 
 	if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioIndex], bForce48KHz))
 	{
-		_cleanup();
-        m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_OpenFail;
+        _cleanup();
+
+		if (m_DecodeStatus.eDecodeStatus != E_DecodeStatus::DS_Cancel)
+		{
+			m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Finished;
+		}
+
 		return E_DecoderRetCode::DRC_InitAudioDevFail;
 	}
 
@@ -204,10 +214,8 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz, IAudioOpaque& AudioOpaque)
 }
 
 E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
-{    
+{
     (void)AudioOpaque;
-
-	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
     auto& bReadFinished = m_DecodeStatus.bReadFinished;
     bReadFinished = false;

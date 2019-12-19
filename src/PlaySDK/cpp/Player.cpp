@@ -144,7 +144,7 @@ void CPlayer::Stop()
 	m_thread.cancel();
 }
 
-bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const CB_PlayFinish& cbFinish)
+bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 {
     mutex_lock lock(m_mutex);
 
@@ -157,11 +157,11 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const CB_PlayFinish& cb
 		auto eRet = __decoder.open(bForce48KHz, m_AudioOpaque);
 		if (eRet != E_DecoderRetCode::DRC_Success)
 		{
-			if (cbFinish)
+			if (cbStop)
 			{
-				cbFinish(E_DecodeStatus::DS_OpenFail);
+				cbStop(true);
 			}
-
+			
 			return false;
 		}
 
@@ -177,9 +177,9 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const CB_PlayFinish& cb
 			auto eRet = __decoder.open(bForce48KHz, m_AudioOpaque);
 			if (eRet != E_DecoderRetCode::DRC_Success)
 			{
-				if (cbFinish)
+				if (cbStop)
 				{
-					cbFinish(E_DecodeStatus::DS_OpenFail);
+					cbStop(true);
 				}
 
 				return;
@@ -191,10 +191,10 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const CB_PlayFinish& cb
 			}
 		}
 
-		E_DecodeStatus eStatus = __decoder.start(m_AudioOpaque);
-		if (cbFinish)
+		(void)__decoder.start(m_AudioOpaque);
+		if (cbStop)
 		{
-			cbFinish(eStatus);
+			cbStop(false);
 		}
 	});
 	
