@@ -3,13 +3,17 @@
 
 size_t AvPacketQueue::enqueue(AVPacket *packet)
 {
-	mutex_lock lock(m_mutex);
+    m_mutex.lock();
 
     m_queue.push_back(*packet);
 
     m_condition.notify_one();
 
-	return m_queue.size();
+    cauto size = m_queue.size();
+
+    m_mutex.unlock();
+
+    return size;
 }
 
 bool AvPacketQueue::dequeue(AVPacket& packet, bool isBlock)
@@ -38,12 +42,15 @@ bool AvPacketQueue::dequeue(AVPacket& packet, bool isBlock)
 
 void AvPacketQueue::clear()
 {
-	mutex_lock lock(m_mutex);
+    m_mutex.lock();
+
     for (auto& packet : m_queue)
 	{
 		av_packet_unref(&packet);
     }
 	m_queue.clear();
+
+    m_mutex.unlock();
 }
 
 bool AvPacketQueue::isEmpty()
