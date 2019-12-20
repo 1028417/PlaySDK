@@ -26,10 +26,10 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 
         if (bOnlineAudio)
         {
-            long nPreserveSize = audioOpaque.checkPreserveDataSize();
+            size_t uPreserveSize = audioOpaque.checkPreserveDataSize();
             if (bWaitFlag)
             {
-                if (nPreserveSize >= 0)
+                if (uPreserveSize > 0)
                 {
                     UINT uByteRate = audioOpaque.byteRate();
                     if (0 == uByteRate)
@@ -37,12 +37,12 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
                         uByteRate = 512000;
                     }
 
-                    UINT uWaitSize = uByteRate;
+                    size_t uWaitSize = uByteRate;
                     if (E_DecodeStatus::DS_Decoding == eStatus)
                     {
                         uWaitSize = uByteRate*6;
                     }
-                    if (nPreserveSize < (long)uWaitSize)
+                    if (uPreserveSize < uWaitSize)
                     {
                         mtutil::usleep(50);
                         continue;
@@ -53,7 +53,7 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
             }
             else
             {
-                if (0 == nPreserveSize)
+                if (0 == uPreserveSize)
                 {
                     bWaitFlag = true;
                 }
