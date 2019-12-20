@@ -157,8 +157,6 @@ void CSLESEngine::setVolume(uint8_t volume)
     }
 }
 
-//CSignal g_sgnStoped(false);
-
 bool CSLESEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& DevInfo)
 {
     (void)channels;
