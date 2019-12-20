@@ -7,73 +7,13 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 {
     IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
 
-    bool bOnlineAudio = audioOpaque.isOnline();
-    bool bWaitFlag = false;
-
-    int nReadSize = 0;
-    while (true)
+    size_t uReadSize = audioOpaque.read(buf, bufSize);
+    if (0 == uReadSize)
     {
-        auto eStatus = audioOpaque.decodeStatus();
-        if (E_DecodeStatus::DS_Cancel == eStatus)//E_DecodeStatus::DS_Finished E_DecodeStatus::DS_OpenFail
-        {
-            return AVERROR_EOF;
-        }
-        if (E_DecodeStatus::DS_Paused == eStatus)
-        {
-            mtutil::usleep(50);
-            continue;
-        }
-
-        if (bOnlineAudio)
-        {
-            size_t uPreserveSize = audioOpaque.checkPreserveDataSize();
-            if (bWaitFlag)
-            {
-                if (uPreserveSize > 0)
-                {
-                    UINT uByteRate = audioOpaque.byteRate();
-                    if (0 == uByteRate)
-                    {
-                        uByteRate = 512000;
-                    }
-
-                    size_t uWaitSize = uByteRate;
-                    if (E_DecodeStatus::DS_Decoding == eStatus)
-                    {
-                        uWaitSize = uByteRate*6;
-                    }
-                    if (uPreserveSize < uWaitSize)
-                    {
-                        mtutil::usleep(50);
-                        continue;
-                    }
-                }
-
-                bWaitFlag = false;
-            }
-            else
-            {
-                if (0 == uPreserveSize)
-                {
-                    bWaitFlag = true;
-                }
-            }
-        }
-
-        nReadSize = audioOpaque.read(buf, (size_t)bufSize);
-        if (nReadSize > 0)
-        {
-            break;
-        }
-        if (nReadSize < 0)
-        {
-            return AVERROR_EOF;
-        }
-
-        mtutil::usleep(50);
+        return AVERROR_EOF;
     }
 
-    return nReadSize;
+    return uReadSize;
 }
 
 int64_t Decoder::_seekOpaque(void *decoder, int64_t offset, int whence)

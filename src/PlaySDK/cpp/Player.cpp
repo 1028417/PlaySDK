@@ -69,11 +69,6 @@ E_DecodeStatus CAudioOpaque::decodeStatus() const
 	return ((const Decoder*)m_pDecoder)->decodeStatus();
 }
 
-UINT CAudioOpaque::byteRate() const
-{
-    return (UINT)((const Decoder*)m_pDecoder)->byteRate();
-}
-
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
 {
 	long long pos = fsutil::lSeek64(m_pf, offset, origin);
@@ -87,16 +82,9 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
     return 0;
 }
 
-int CAudioOpaque::read(byte_p buf, size_t size)
+size_t CAudioOpaque::read(byte_p buf, size_t size)
 {
-    size_t uCount = fread(buf, 1, size, m_pf);
-    if (0 == uCount)
-    {
-        return -1;
-    }
-
-    //m_uPos += uCount;
-    return uCount;
+    return fread(buf, 1, size, m_pf);
 }
 
 int CPlayer::InitSDK()
