@@ -61,7 +61,7 @@ E_DecoderRetCode Decoder::_checkStream()
 	return E_DecoderRetCode::DRC_NoAudioStream;
 }
 
-#define __avioBuffSize 4096//32768
+#define __avioBuffSize 32768
 
 E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
 {

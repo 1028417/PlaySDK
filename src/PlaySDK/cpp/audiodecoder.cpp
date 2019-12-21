@@ -288,7 +288,8 @@ int32_t AudioDecoder::_convertFrame(AVFrame& frame)
         if (sampleSize == outCount)
         {
             // "audio buffer is probably too small";
-			if (swr_init(m_DecodeData.aCovertCtx) < 0) {
+            if (swr_init(m_DecodeData.aCovertCtx) < 0)
+            {
 				swr_free(&m_DecodeData.aCovertCtx);
 				m_DecodeData.aCovertCtx = NULL;
 			}
