@@ -36,6 +36,8 @@ void CAudioOpaque::close()
         (void)fclose(m_pf);
         m_pf = NULL;
     }
+
+    m_nFileSize = -1;
 }
 
 long long CAudioOpaque::open(const wstring& strFile)
@@ -46,15 +48,15 @@ long long CAudioOpaque::open(const wstring& strFile)
         return -1;
     }
 
-	long long nFileSize = fsutil::lSeek64(m_pf, 0, SEEK_END);
-	if (nFileSize <= 0)
+    m_nFileSize = fsutil::lSeek64(m_pf, 0, SEEK_END);
+    if (m_nFileSize <= 0)
 	{
 		fclose(m_pf);
 		m_pf = NULL;
 	}
 	(void)fsutil::lSeek64(m_pf, 0, SEEK_SET);
     
-	return nFileSize;
+    return m_nFileSize;
 }
 
 UINT CAudioOpaque::checkDuration()
