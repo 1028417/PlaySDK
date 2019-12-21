@@ -69,6 +69,11 @@ E_DecodeStatus CAudioOpaque::decodeStatus() const
 	return ((const Decoder*)m_pDecoder)->decodeStatus();
 }
 
+UINT CAudioOpaque::byteRate() const
+{
+    return ((const Decoder*)m_pDecoder)->byteRate();
+}
+
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
 {
 	long long pos = fsutil::lSeek64(m_pf, offset, origin);
