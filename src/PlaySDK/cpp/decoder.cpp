@@ -19,9 +19,8 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 int64_t Decoder::_seekOpaque(void *decoder, int64_t offset, int whence)
 {
 	if (AVSEEK_SIZE == whence)
-	{
-		return -1; // 可直接返回-1
-		//return audioOpaque.size();
+    {
+        return ((IAudioOpaque*)decoder)->size(); //return -1; // 可直接返回-1
 	}
 
     return ((IAudioOpaque*)decoder)->seek(offset, whence);

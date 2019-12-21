@@ -36,8 +36,6 @@ void CAudioOpaque::close()
         (void)fclose(m_pf);
         m_pf = NULL;
     }
-
-    //m_uPos = 0;
 }
 
 long long CAudioOpaque::open(const wstring& strFile)
@@ -81,8 +79,6 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
     {
         return -1;
     }
-
-    //m_uPos = (uint64_t)pos;
 
     return 0;
 }
