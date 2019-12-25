@@ -162,7 +162,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 		}
 	}
 
-    m_thread.start([=]() {       
+    m_thread.start([=]() {
 		if (bOnline)
 		{
 			auto eRet = __decoder.open(bForce48KHz, m_AudioOpaque);
