@@ -48,14 +48,17 @@ long long CAudioOpaque::open(const wstring& strFile)
         return -1;
     }
 
-    m_nFileSize = fsutil::lSeek64(m_pf, 0, SEEK_END);
+    (void)fseek64(m_pf, 0, SEEK_END);
+    m_nFileSize = (long long )ftell64(m_pf);
     if (m_nFileSize <= 0)
 	{
 		fclose(m_pf);
 		m_pf = NULL;
-	}
-	(void)fsutil::lSeek64(m_pf, 0, SEEK_SET);
-    
+    }
+    (void)fseek64(m_pf, 0, SEEK_SET);
+
+    setbuf(m_pf, NULL);
+
     return m_nFileSize;
 }
 
@@ -76,13 +79,20 @@ UINT CAudioOpaque::byteRate() const
 
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
 {
-	long long pos = fsutil::lSeek64(m_pf, offset, origin);
+    if (feof(m_pf))
+    {
+        rewind(m_pf);
+    }
+
+    return fseek64(m_pf, offset, origin);
+
+    /*long long pos = lseek64(m_pf, offset, origin);
 	if (pos < 0)
     {
         return -1;
     }
 
-    return 0;
+    return 0;*/
 }
 
 size_t CAudioOpaque::read(byte_p buf, size_t size)
