@@ -53,7 +53,8 @@ android {
 	platform = win
 	DESTDIR = ../../bin
 
-	QMAKE_POST_LINK += copy /Y ..\..\bin\xPlaySdk.dll ..\..\..\XMusic\bin
+        QMAKE_POST_LINK += copy /Y ..\..\bin\xPlaySdk.dll ..\..\..\XMusic\bin && \
+            copy /Y ..\..\bin\libxPlaySDK.a ..\..\..\XMusic\bin
 }
 
 build_dir = ../../../build/xPlaySDK/$$platform
