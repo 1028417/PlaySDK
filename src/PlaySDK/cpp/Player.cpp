@@ -157,7 +157,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 		auto eRet = __decoder.open(bForce48KHz, m_AudioOpaque);
 		if (eRet != E_DecoderRetCode::DRC_Success)
         {
-            m_thread.start([=]() { // TODO临时规避某bug
+            m_thread.start([&, cbStop]() { // TODO临时规避某bug
                 mtutil::usleep(100);
                 cbStop(__decoder.decodeStatus() != E_DecodeStatus::DS_Cancel);
             });

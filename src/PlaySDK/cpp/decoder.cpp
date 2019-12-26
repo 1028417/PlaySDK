@@ -234,6 +234,8 @@ E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
     /* close audio device */
     m_audioDecoder.close();
 
+    bReadFinished = false;
+
 	_cleanup();
 
 	return m_DecodeStatus.eDecodeStatus;
