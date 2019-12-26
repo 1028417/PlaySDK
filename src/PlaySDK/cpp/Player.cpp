@@ -57,7 +57,7 @@ long long CAudioOpaque::open(const wstring& strFile)
     }
     (void)fseek64(m_pf, 0, SEEK_SET);
 
-    setbuf(m_pf, NULL);
+    //setbuf(m_pf, NULL);
 
     return m_nFileSize;
 }
