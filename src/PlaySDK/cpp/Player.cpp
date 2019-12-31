@@ -3,8 +3,8 @@
 
 #include "decoder.h"
 
-static CUTF8TxtWriter m_logger;
-ITxtWriter& g_playsdkLogger(m_logger);
+//static CUTF8TxtWriter m_logger;
+//ITxtWriter& g_playsdkLogger(m_logger);
 
 #if !__windows
 #define _aligned_free(p) free(p)
@@ -101,31 +101,31 @@ size_t CAudioOpaque::read(byte_p buf, size_t size)
 
 int CPlayer::InitSDK()
 {
-	if (!m_logger.is_open())
-	{
-		m_logger.open(L"playsdk.log", true);
-		g_playsdkLogger >> "InitSDK";
-	}
+	//if (!m_logger.is_open())
+	//{
+	//	m_logger.open(L"playsdk.log", true);
+	//	g_playsdkLogger >> "InitSDK";
+	//}
 
 #if __android
     return CSLESEngine::init();
 #else
     int nRet = CSDLEngine::init();
-    if (nRet != 0)
-    {
-        g_playsdkLogger << "initSDLEngine fail: " >> CSDLEngine::getErrMsg();
-    }
+    //if (nRet != 0)
+    //{
+    //    g_playsdkLogger << "initSDLEngine fail: " >> CSDLEngine::getErrMsg();
+    //}
     return nRet;
 #endif
 }
 
 void CPlayer::QuitSDK()
 {
-    if (m_logger.is_open())
-    {
-        g_playsdkLogger >> "QuitSDK";
-        m_logger.close();
-    }
+    //if (m_logger.is_open())
+    //{
+    //    g_playsdkLogger >> "QuitSDK";
+    //    m_logger.close();
+    //}
 
 #if __android
     CSLESEngine::quit();
