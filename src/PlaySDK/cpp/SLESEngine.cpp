@@ -4,7 +4,6 @@
 #if __android
 //#include <android/log.h>
 //#define LOGD(FORMAT,...) __android_log_print(ANDROID_LOG_ERROR,"ywl5320",FORMAT,##__VA_ARGS__);
-extern ITxtWriter& g_playsdkLogger;
 
 #define __samplesPerSec SL_SAMPLINGRATE_44_1
 #define __freq 44100
@@ -17,26 +16,24 @@ static SLEngineItf g_engineIf = NULL;
 
 int CSLESEngine::init()
 {
-    g_playsdkLogger >> "init SLESEngine";
-
     SLresult re = slCreateEngine(&g_engine,0,0,0,0,0);
     if(re != SL_RESULT_SUCCESS)
     {
-        g_playsdkLogger << "slCreateEngine fail: " >> re;
+        //g_playsdkLogger << "slCreateEngine fail: " >> re;
         return re;
     }
 
     re = (*g_engine)->Realize(g_engine,SL_BOOLEAN_FALSE);
     if(re != SL_RESULT_SUCCESS)
     {
-        g_playsdkLogger << "RealizeEngine fail: " >> re;
+        //g_playsdkLogger << "RealizeEngine fail: " >> re;
         return re;
     }
 
     re = (*g_engine)->GetInterface(g_engine,SL_IID_ENGINE,&g_engineIf);
     if(re != SL_RESULT_SUCCESS)
     {
-        g_playsdkLogger << "GetInterface SL_IID_ENGINE fail: " >> re;
+        //g_playsdkLogger << "GetInterface SL_IID_ENGINE fail: " >> re;
         return re;
     }
 
@@ -55,10 +52,9 @@ void CSLESEngine::quit()
 
 bool CSLESEngine::_init()
 {
-    g_playsdkLogger >> "init SLESPlayer";
-    if (!g_engine)
+    if (NULL == g_engine)
     {
-        g_playsdkLogger >> "engine not inited";
+        //g_playsdkLogger >> "engine not inited";
         return false;
     }
 
@@ -66,13 +62,13 @@ bool CSLESEngine::_init()
     SLresult re = (*g_engineIf)->CreateOutputMix(g_engineIf,&m_mix,0,0,0);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "CreateOutputMix fail" >> re;
+        //g_playsdkLogger << "CreateOutputMix fail" >> re;
         return false;
     }
     re = (*m_mix)->Realize(m_mix,SL_BOOLEAN_FALSE);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "Realize OutputMix fail" >> re;
+        //g_playsdkLogger << "Realize OutputMix fail" >> re;
         return false;
     }
     SLDataLocator_OutputMix outmix = {SL_DATALOCATOR_OUTPUTMIX,m_mix};
@@ -99,13 +95,13 @@ bool CSLESEngine::_init()
     re = (*g_engineIf)->CreateAudioPlayer(g_engineIf,&m_player,&ds,&audioSink,sizeof(ids)/sizeof(SLInterfaceID),ids,req);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "CreateAudioPlayer fail" >> re;
+        //g_playsdkLogger << "CreateAudioPlayer fail" >> re;
         return false;
     }
     re = (*m_player)->Realize(m_player,SL_BOOLEAN_FALSE);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "Realize Player fail" >> re;
+        //g_playsdkLogger << "Realize Player fail" >> re;
         return false;
     }
 
@@ -113,14 +109,14 @@ bool CSLESEngine::_init()
     re = (*m_player)->GetInterface(m_player,SL_IID_PLAY,&m_playIf);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "GetInterface SL_IID_PLAY fail" >> re;
+        //g_playsdkLogger << "GetInterface SL_IID_PLAY fail" >> re;
         return false;
     }
 
     re = (*m_player)->GetInterface(m_player,SL_IID_VOLUME,&m_volumeIf);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "GetInterface SL_IID_VOLUME fail" >> re;
+        //g_playsdkLogger << "GetInterface SL_IID_VOLUME fail" >> re;
         return false;
     }
     setVolume(m_volume);
@@ -128,7 +124,7 @@ bool CSLESEngine::_init()
     re = (*m_player)->GetInterface(m_player,SL_IID_BUFFERQUEUE,&m_bf);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
+        //g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
         return false;
     }
 
@@ -136,7 +132,7 @@ bool CSLESEngine::_init()
     re = (*m_bf)->RegisterCallback(m_bf, PcmCall, this);
     if(SL_RESULT_SUCCESS != re)
     {
-        g_playsdkLogger << "bf RegisterCallback fail" >> re;
+        //g_playsdkLogger << "bf RegisterCallback fail" >> re;
         return false;
     }
 
@@ -242,8 +238,6 @@ void CSLESEngine::pause(bool bPause)
 
 void CSLESEngine::close()
 {
-    g_playsdkLogger >> "SLES stoping";
-
     if (m_playIf)
     {
         (*m_bf)->Clear(m_bf);
@@ -253,8 +247,6 @@ void CSLESEngine::close()
 
 void CSLESEngine::_destroy()
 {
-    g_playsdkLogger >> "SLES destoy";
-
     if (m_mix)
     {
         (*m_mix)->Destroy(m_mix);
