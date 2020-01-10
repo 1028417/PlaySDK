@@ -107,10 +107,9 @@
       <Path />
     </BuildLog>
     <PostBuildEvent>
-      <Command>Copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "$(ProjectDir)$(OutDir)..\..\XMusic\bin\"
+      <Command>Copy /Y "$(OutDir)$(TargetName).dll" "$(OutDir)..\..\XMusic\bin\"
 
-Copy /Y "$(ProjectDir)$(OutDir)..\libs\$(TargetName).lib" "$(ProjectDir)$(OutDir)..\..\XMusic\libs\"
-</Command>
+Copy /Y "$(OutDir)..\libs\$(TargetName).lib" "$(OutDir)..\..\XMusic\libs\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -148,9 +147,9 @@ Copy /Y "$(ProjectDir)$(OutDir)..\libs\$(TargetName).lib" "$(ProjectDir)$(OutDir
       <Path />
     </BuildLog>
     <PostBuildEvent>
-      <Command>Copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "$(ProjectDir)$(OutDir)..\..\XMusic\bin\"
+      <Command>Copy /Y "$(OutDir)$(TargetName).dll" "$(OutDir)..\..\XMusic\bin\"
 
-Copy /Y "$(ProjectDir)$(OutDir)..\libs\$(TargetName).lib" "$(ProjectDir)$(OutDir)..\..\XMusic\libs\"
+Copy /Y "$(OutDir)..\libs\$(TargetName).lib" "$(OutDir)..\..\XMusic\libs\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
