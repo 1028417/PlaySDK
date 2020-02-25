@@ -201,18 +201,18 @@ int32_t AudioDecoder::_receiveFrame()
 		return -1;
 	}
 
-	int iRet = avcodec_receive_frame(m_codecCtx, frame);
-	if (iRet < 0)
+	int nRet = avcodec_receive_frame(m_codecCtx, frame);
+	if (nRet < 0)
 	{
 		av_frame_free(&frame);
 
         // "Audio frame decode failed, error code: " << ret;
-		if (iRet == AVERROR(EAGAIN))
+		if (nRet == AVERROR(EAGAIN))
 		{
 			return 0;
 		}
 		
-		return iRet;
+		return nRet;
 	}
 
 	int32_t audioBufSize = _convertFrame(*frame);
