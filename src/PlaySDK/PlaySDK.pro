@@ -25,14 +25,15 @@ HEADERS += ../../inc/Player.h  cpp/inc.h
 INCLUDEPATH += ../../../Common2.1/inc  ../../3rd/ffmpeg/include
 
 android {
-    LIBS += -L../../../XMusic/libs/armeabi-v7a  -lxutil \
+    LIBS += -L../../../Common2.1/libs/armeabi-v7a  -lxutil \
             -lOpenSLES \
             -L../../libs/armeabi-v7a/ffmpeg  -lavcodec  -lavformat  -lavutil  -lswresample \
 
     platform = android
-    DESTDIR = ../../../XMusic/libs/armeabi-v7a
+    DESTDIR = ../../libs/armeabi-v7a
+    QMAKE_POST_LINK += copy /Y ..\..\libs\armeabi-v7a\libxPlaySDK.so ..\..\..\XMusic\libs\armeabi-v7a
 } else: macx {
-	LIBS += -L../../../XMusic/bin/mac  -lxutil \
+        LIBS += -L../../../Common2.1/bin/mac  -lxutil \
 			../../bin/mac/SDL2.framework/Versions/A/SDL2 \
 			-L../../bin/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
 	#LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
