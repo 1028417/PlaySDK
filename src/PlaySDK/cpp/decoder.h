@@ -24,9 +24,9 @@ public:
 	}
 	
 private:
-	AudioDecoder m_audioDecoder;
-
 	tagDecodeStatus m_DecodeStatus;
+
+	AudioDecoder m_audioDecoder;
 
 	AVIOContext *m_avio = NULL;
 	AVFormatContext *m_pFormatCtx = NULL;
@@ -34,7 +34,7 @@ private:
 	int m_audioIndex = 0;
 
 	uint32_t m_duration = 0;
-        uint32_t m_byteRate = 0;
+	uint32_t m_byteRate = 0;
 
 	int64_t m_seekPos = -1;
 
@@ -59,14 +59,23 @@ public:
 		return m_audioDecoder.clock();
 	}
 
-        uint32_t duration() const
-        {
-                return m_duration;
-        }
-        uint32_t byteRate() const
-        {
-                return m_byteRate;
-        }
+    uint32_t duration() const
+    {
+            return m_duration;
+    }
+    uint32_t byteRate() const
+    {
+            return m_byteRate;
+    }
+
+	int audioSampleRate() const
+	{
+		return m_audioDecoder.audioSampleRate();
+	}
+	int devSampleRate() const
+	{
+		return m_audioDecoder.devSampleRate();
+	}
 
 	uint32_t check(IAudioOpaque& AudioOpaque);
 

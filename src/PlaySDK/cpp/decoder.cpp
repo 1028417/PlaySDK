@@ -46,11 +46,7 @@ E_DecoderRetCode Decoder::_checkStream()
 					//return E_DecoderRetCode::DRC_InvalidAudioStream;
 				}
 
-                m_byteRate = 0;
-                if (m_pFormatCtx->bit_rate > 0)
-                {
-                    m_byteRate = uint32_t(m_pFormatCtx->bit_rate/8);
-                }
+				m_byteRate = (uint32_t)m_pFormatCtx->bit_rate/8;
 
 				return E_DecoderRetCode::DRC_Success;
 			}

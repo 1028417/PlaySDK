@@ -128,6 +128,9 @@ public:
 	uint32_t GetDuration();
 	uint64_t GetClock();
 
+	int audioSampleRate() const;
+	int devSampleRate() const;
+
 	void Seek(UINT uPos);
 
     void Pause();

@@ -67,10 +67,10 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
         return false;
     }
 
-	int sample_rate = m_codecCtx->sample_rate;
+	int sample_rate = m_DecodeData.sample_rate = m_codecCtx->sample_rate;
 	if (bForce48KHz)
 	{
-        sample_rate = MAX(sample_rate, 48000);
+		sample_rate = MAX(sample_rate, 48000);
 	}
 	
 	int samples = 0;// FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(sample_rate / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
@@ -89,7 +89,7 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
     {
 		audioDstDepth = 4;
     }
-    m_bytesPerSec = m_DevInfo.freq * m_codecCtx->channels * audioDstDepth;
+    m_dstByteRate = m_DevInfo.freq * m_codecCtx->channels * audioDstDepth;
 	
 	m_clock = 0;
     
@@ -223,7 +223,7 @@ int32_t AudioDecoder::_receiveFrame()
     }
     else if (audioBufSize > 0)
 	{
-        m_clock += (uint64_t)audioBufSize * __1e6 / m_bytesPerSec;
+        m_clock += (uint64_t)audioBufSize * __1e6 / m_dstByteRate;
     }
 
 	av_frame_free(&frame);

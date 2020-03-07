@@ -209,6 +209,15 @@ uint64_t CPlayer::GetClock()
     return __decoder.getClock();
 }
 
+int CPlayer::audioSampleRate() const
+{
+	return __decoder.audioSampleRate();
+}
+int CPlayer::devSampleRate() const
+{
+	return __decoder.devSampleRate();
+}
+
 void CPlayer::Seek(UINT uPos)
 {
     mutex_lock lock(m_mutex);

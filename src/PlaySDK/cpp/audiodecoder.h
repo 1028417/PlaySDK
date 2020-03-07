@@ -38,6 +38,8 @@ struct tagDecodeData
 	AVSampleFormat audioSrcFmt;
 	int64_t audioSrcChannelLayout = 0;
 	int audioSrcFreq = 0;
+
+	int sample_rate = 0;
 };
 
 struct tagDecodeStatus
@@ -58,8 +60,7 @@ private:
 	tagSLDevInfo m_DevInfo;
 
 	double m_timeBase = 0;
-	int m_bytesPerSec = 0;
-
+	int m_dstByteRate = 0;
 	uint64_t m_clock = 0;
 
 	int64_t m_seekPos = -1;
@@ -99,9 +100,18 @@ public:
 		m_packetQueue.clear();
 	}
 
-	uint64_t clock()
+	uint64_t clock() const
 	{
 		return m_clock;
+	}
+
+	int audioSampleRate() const
+	{
+		return m_DecodeData.sample_rate;
+	}
+	int devSampleRate() const
+	{
+		return m_DevInfo.freq;
 	}
 
 	void close();
