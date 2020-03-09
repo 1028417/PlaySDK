@@ -12,11 +12,12 @@ public:
 
     bool dequeue(AVPacket& packet, bool isBlock);
 
-    bool isEmpty();
+    bool isEmpty() const
+    {
+        return m_queue.empty();
+    }
 
     void clear();
-
-    size_t queueSize();
 
 private:
     mutex m_mutex;

@@ -77,22 +77,27 @@ private:
     m_SLEngine;
 
 public:
-	size_t packetEnqueue(AVPacket& packet)
-	{
-		return m_packetQueue.enqueue(&packet);
-	}
+    bool packetQueueEmpty() const
+    {
+        return m_packetQueue.isEmpty();
+    }
 
-	void setVolume(uint8_t volume)
-	{
+    size_t packetEnqueue(AVPacket& packet)
+    {
+        return m_packetQueue.enqueue(&packet);
+    }
+
+    void setVolume(uint8_t volume)
+    {
         m_SLEngine.setVolume(volume);
-	}
+    }
 
     bool open(AVStream& stream, bool bForce48KHz=false);
 
-	void pause(bool bPause)
-	{
+    void pause(bool bPause)
+    {
         m_SLEngine.pause(bPause);
-	}
+    }
 
 	void seek(uint64_t pos)
 	{

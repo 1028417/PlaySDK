@@ -52,13 +52,3 @@ void AvPacketQueue::clear()
 
     m_mutex.unlock();
 }
-
-bool AvPacketQueue::isEmpty()
-{
-    return m_queue.empty();
-}
-
-size_t AvPacketQueue::queueSize()
-{
-    return m_queue.size();
-}

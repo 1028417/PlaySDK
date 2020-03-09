@@ -77,6 +77,11 @@ public:
 		return m_audioDecoder.devSampleRate();
 	}
 
+        bool packetQueueEmpty() const
+        {
+            return m_audioDecoder.packetQueueEmpty();
+        }
+
 	uint32_t check(IAudioOpaque& AudioOpaque);
 
 	E_DecoderRetCode open(bool bForce48KHz, IAudioOpaque& AudioOpaque);

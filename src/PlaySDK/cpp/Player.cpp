@@ -245,3 +245,8 @@ void CPlayer::SetVolume(UINT uVolume)
 
 	__decoder.setVolume(uVolume);
 }
+
+bool CPlayer::packetQueueEmpty() const
+{
+    return __decoder.packetQueueEmpty();
+}
