@@ -105,7 +105,7 @@ public:
 		m_packetQueue.clear();
 	}
 
-	uint64_t clock() const
+        const uint64_t& clock() const
 	{
 		return m_clock;
 	}

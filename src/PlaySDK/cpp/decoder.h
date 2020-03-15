@@ -49,12 +49,12 @@ private:
 	void _cleanup();
 
 public:
-	E_DecodeStatus decodeStatus() const
+        const E_DecodeStatus& decodeStatus() const
 	{
 		return m_DecodeStatus.eDecodeStatus;
 	}
 
-	uint64_t getClock()
+        const uint64_t& getClock()
 	{
 		return m_audioDecoder.clock();
 	}

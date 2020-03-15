@@ -67,7 +67,7 @@ UINT CAudioOpaque::checkDuration()
 	return ((Decoder*)m_pDecoder)->check(*this);
 }
 
-E_DecodeStatus CAudioOpaque::decodeStatus() const
+const E_DecodeStatus& CAudioOpaque::decodeStatus() const
 {
 	return ((const Decoder*)m_pDecoder)->decodeStatus();
 }
