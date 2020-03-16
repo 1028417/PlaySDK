@@ -9,10 +9,10 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
     size_t uReadSize = pDecoder->m_audioOpaque.read(buf, bufSize);
     if (0 == uReadSize)
     {
-        if (pDecoder->m_audioOpaque.eof())
-        {
-            return AVERROR_EOF;
-        }
+		if (!pDecoder->m_audioOpaque.isOnline() || pDecoder->m_audioOpaque.streamEof())
+		{
+			return AVERROR_EOF;
+		}
     }
 
     return uReadSize;
