@@ -5,37 +5,42 @@
 
 int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 {
-    IAudioOpaque& audioOpaque = *(IAudioOpaque*)opaque;
-
-    size_t uReadSize = audioOpaque.read(buf, bufSize);
+    auto pDecoder = (Decoder*)opaque;
+    size_t uReadSize = pDecoder->m_audioOpaque.read(buf, bufSize);
     if (0 == uReadSize)
     {
-        return AVERROR_EOF;
+        if (pDecoder->m_audioOpaque.eof())
+        {
+            return AVERROR_EOF;
+        }
     }
 
     return uReadSize;
 }
 
-int64_t Decoder::_seekOpaque(void *decoder, int64_t offset, int whence)
+int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
 {
+    auto pDecoder = (Decoder*)opaque;
 	if (AVSEEK_SIZE == whence)
     {
-        return ((IAudioOpaque*)decoder)->size(); //return -1; // 可直接返回-1
+        return pDecoder->m_audioOpaque.size(); //return -1; // 可直接返回-1
 	}
 
-    return ((IAudioOpaque*)decoder)->seek(offset, whence);
+    return pDecoder->m_audioOpaque.seek(offset, whence);
 }
 
 E_DecoderRetCode Decoder::_checkStream()
 {
 	if (0 == avformat_find_stream_info(m_pFormatCtx, NULL))
 	{
-        for (m_audioIndex = 0; m_audioIndex < (int)m_pFormatCtx->nb_streams; m_audioIndex++)
+        for (UINT uIdx = 0; uIdx < m_pFormatCtx->nb_streams; uIdx++)
 		{
-            AVStream& stream = *m_pFormatCtx->streams[m_audioIndex];
+            AVStream& stream = *m_pFormatCtx->streams[uIdx];
             AVCodecParameters& codecpar = *stream.codecpar;
             if (AVMEDIA_TYPE_AUDIO == codecpar.codec_type)
             {
+                m_audioStreamIdx = uIdx;
+
                 if (m_pFormatCtx->duration > 0)
 				{
 					m_duration = uint32_t(m_pFormatCtx->duration / __1e6);
@@ -58,14 +63,14 @@ E_DecoderRetCode Decoder::_checkStream()
 
 #define __avioBuffSize 32768
 
-E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
+E_DecoderRetCode Decoder::_open()
 {
 	if (NULL == (m_pFormatCtx = avformat_alloc_context()))
 	{
 		return E_DecoderRetCode::DRC_Fail;
 	}
 
-	cauto strFile = AudioOpaque.localFilePath();
+    cauto strFile = m_audioOpaque.localFilePath();
 	if (!strFile.empty())
 	{
 		int nRet = avformat_open_input(&m_pFormatCtx, strutil::toUtf8(strFile).c_str(), NULL, NULL);
@@ -82,7 +87,7 @@ E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
 			return E_DecoderRetCode::DRC_Fail;
 		}
 		if (NULL == (m_avio = avio_alloc_context(avioBuff, __avioBuffSize, 0
-			, &AudioOpaque, _readOpaque, NULL, AudioOpaque.seekable() ? _seekOpaque : NULL)))
+            , this, _readOpaque, NULL, m_audioOpaque.seekable() ? _seekOpaque : NULL)))
 		{
 			return E_DecoderRetCode::DRC_Fail;
 		}
@@ -105,9 +110,9 @@ E_DecoderRetCode Decoder::_open(IAudioOpaque& AudioOpaque)
     return  _checkStream();
 }
 
-uint32_t Decoder::check(IAudioOpaque& AudioOpaque)
+uint32_t Decoder::check()
 {
-	(void)_open(AudioOpaque);
+    (void)_open();
 
 	uint32_t uDuration = m_duration;
 
@@ -116,11 +121,11 @@ uint32_t Decoder::check(IAudioOpaque& AudioOpaque)
 	return uDuration;
 }
 
-E_DecoderRetCode Decoder::open(bool bForce48KHz, IAudioOpaque& AudioOpaque)
+E_DecoderRetCode Decoder::open(bool bForce48KHz)
 {
 	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
-	auto eRet = _open(AudioOpaque);
+    auto eRet = _open();
 	if (eRet != E_DecoderRetCode::DRC_Success)
     {
         _cleanup();
@@ -133,7 +138,7 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz, IAudioOpaque& AudioOpaque)
 		return eRet;
 	}
 
-	if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioIndex], bForce48KHz))
+    if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioStreamIdx], bForce48KHz))
 	{
         _cleanup();
 
@@ -148,10 +153,8 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz, IAudioOpaque& AudioOpaque)
 	return E_DecoderRetCode::DRC_Success;
 }
 
-E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
+E_DecodeStatus Decoder::start()
 {
-    (void)AudioOpaque;
-
     auto& bReadFinished = m_DecodeStatus.bReadFinished;
     bReadFinished = false;
 
@@ -173,8 +176,8 @@ E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
 	seek:
 		if (m_seekPos>=0)
 		{
-			int64_t seekPos = av_rescale_q(m_seekPos, av_get_time_base_q(), m_pFormatCtx->streams[m_audioIndex]->time_base);
-			if (av_seek_frame(m_pFormatCtx, m_audioIndex, seekPos, AVSEEK_FLAG_BACKWARD) < 0)
+            int64_t seekPos = av_rescale_q(m_seekPos, av_get_time_base_q(), m_pFormatCtx->streams[m_audioStreamIdx]->time_base);
+            if (av_seek_frame(m_pFormatCtx, m_audioStreamIdx, seekPos, AVSEEK_FLAG_BACKWARD) < 0)
 			{
 				//QDebug() << "Seek failed.";
                 if (bReadFinished)
@@ -198,11 +201,20 @@ E_DecodeStatus Decoder::start(IAudioOpaque& AudioOpaque)
 		int nRet = av_read_frame(m_pFormatCtx, &packet);
 		if (nRet < 0)
         {
+            if (m_seekPos >= 0)
+            {
+                continue;
+            }
+            if (!m_audioOpaque.eof())
+            {
+                continue;
+            }
+
             bReadFinished = true;
 			break;
 		}
 
-        if (packet.stream_index == m_audioIndex)
+        if (packet.stream_index == m_audioStreamIdx)
 		{
 			if (m_audioDecoder.packetEnqueue(packet) > 100)
 			{
@@ -286,14 +298,15 @@ void Decoder::_cleanup()
 		avformat_free_context(m_pFormatCtx);
 		m_pFormatCtx = NULL;
 	}
-
     if (m_avio)
 	{
 		av_freep(&m_avio->buffer);
 		avio_context_free(&m_avio);
 		m_avio = NULL;
 	}
-	
+
+    m_audioStreamIdx = -1;
+
     m_duration = 0;
     m_byteRate = 0;
 

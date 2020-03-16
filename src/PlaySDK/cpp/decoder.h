@@ -19,11 +19,15 @@ enum class E_DecoderRetCode
 class Decoder
 {
 public:
-	Decoder() : m_audioDecoder(m_DecodeStatus)
+        Decoder(IAudioOpaque& AudioOpaque)
+            : m_audioOpaque(AudioOpaque)
+            , m_audioDecoder(m_DecodeStatus)
 	{
 	}
 	
 private:
+        IAudioOpaque& m_audioOpaque;
+
 	tagDecodeStatus m_DecodeStatus;
 
 	AudioDecoder m_audioDecoder;
@@ -31,7 +35,7 @@ private:
 	AVIOContext *m_avio = NULL;
 	AVFormatContext *m_pFormatCtx = NULL;
 
-	int m_audioIndex = 0;
+        int m_audioStreamIdx = -1;
 
 	uint32_t m_duration = 0;
 	uint32_t m_byteRate = 0;
@@ -39,16 +43,21 @@ private:
 	int64_t m_seekPos = -1;
 
 private:
-	static int _readOpaque(void *decoder, uint8_t *buf, int bufSize);
-	static int64_t _seekOpaque(void *decoder, int64_t offset, int whence);
+        static int _readOpaque(void *opaque, uint8_t *buf, int bufSize);
+        static int64_t _seekOpaque(void *opaque, int64_t offset, int whence);
 
-	E_DecoderRetCode _open(IAudioOpaque& AudioOpaque);
+        E_DecoderRetCode _open();
 
 	E_DecoderRetCode _checkStream();
 
 	void _cleanup();
 
 public:
+        bool isOpened() const
+        {
+            return m_audioStreamIdx >= 0;
+        }
+
         const E_DecodeStatus& decodeStatus() const
 	{
 		return m_DecodeStatus.eDecodeStatus;
@@ -82,11 +91,11 @@ public:
             return m_audioDecoder.packetQueueEmpty();
         }
 
-	uint32_t check(IAudioOpaque& AudioOpaque);
+        uint32_t check();
 
-	E_DecoderRetCode open(bool bForce48KHz, IAudioOpaque& AudioOpaque);
+        E_DecoderRetCode open(bool bForce48KHz);
 
-	E_DecodeStatus start(IAudioOpaque& AudioOpaque);
+        E_DecodeStatus start();
 
 	void cancel();
 
@@ -94,6 +103,11 @@ public:
 	void resume();
 	
 	void seek(uint64_t pos);
+
+        bool seekingFlag() const
+        {
+            return m_seekPos>=0;
+        }
 
 	void setVolume(uint8_t volume);
 };
