@@ -58,7 +58,14 @@ android {
             copy /Y ..\..\bin\libxPlaySDK.a ..\..\..\XMusic\bin
 }
 
-build_dir = ../../../build/xPlaySDK/$$platform
+build_dir = TARGET
+
+#CONFIG += debug_and_release
+CONFIG(debug, debug|release) {
+    build_dir = $$join($$build_dir,,,d)
+}
+
+build_dir = ../../../build/$$build_dir/$$platform
 
 MOC_DIR = $$build_dir
 RCC_DIR = $$build_dir
