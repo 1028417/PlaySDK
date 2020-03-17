@@ -22,51 +22,60 @@ SOURCES += cpp/Player.cpp \
 
 HEADERS += ../../inc/Player.h  cpp/inc.h
 
-INCLUDEPATH += ../../../Common2.1/inc  ../../3rd/ffmpeg/include
+CommonDir = ../../../Common2.1
+INCLUDEPATH += $$CommonDir/inc  ../../3rd/ffmpeg/include
+
+mac {
+XMusicDir = ../../../XMusic
+} else {
+XMusicDir = ..\..\..\XMusic
+}
+
+BinDir = ../../bin
 
 android {
-    LIBS += -L../../../Common2.1/libs/armeabi-v7a  -lxutil \
+    LIBS += -L$$CommonDir/libs/armeabi-v7a  -lxutil \
             -lOpenSLES \
             -L../../libs/armeabi-v7a/ffmpeg  -lavcodec  -lavformat  -lavutil  -lswresample \
 
     platform = android
-    DESTDIR = ../../libs/armeabi-v7a
-    QMAKE_POST_LINK += copy /Y ..\..\libs\armeabi-v7a\libxPlaySDK.so ..\..\..\XMusic\libs\armeabi-v7a
+    DESTDIR = ..\..\libs\armeabi-v7a
+    QMAKE_POST_LINK += copy /Y $$DESTDIR\libxPlaySDK.so $$XMusicDir\libs\armeabi-v7a
 } else: macx {
-        LIBS += -L../../../Common2.1/bin/mac  -lxutil \
-			../../bin/mac/SDL2.framework/Versions/A/SDL2 \
-			-L../../bin/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
+        LIBS += -L$$CommonDir/bin/mac  -lxutil \
+                        $$BinDir/mac/SDL2.framework/Versions/A/SDL2 \
+                        -L$$BinDir/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
 	#LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
 	#        -framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
 	#        -framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
 
 	platform = mac
-	DESTDIR = ../../bin/mac
+        DESTDIR = $$BinDir/mac
 
-	QMAKE_POST_LINK += cp -f ../../bin/mac/libxPlaySDK*.dylib ../../../XMusic/bin/mac/
+        QMAKE_POST_LINK += cp -f $$DESTDIR/libxPlaySDK*.dylib $$XMusicDir/bin/mac/
 } else: ios {
 	platform = ios
 	DESTDIR = ../../../build/ioslib
 } else {
-	LIBS += -L../../../Common2.1/bin  -lxutil \
-			-L../../bin  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
+        LIBS += -L$$CommonDir/bin  -lxutil \
+                        -L$$BinDir  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
 
 	platform = win
-	DESTDIR = ../../bin
+        DESTDIR = ..\..\bin
 
-        QMAKE_POST_LINK += copy /Y ..\..\bin\xPlaySdk.dll ..\..\..\XMusic\bin && \
-            copy /Y ..\..\bin\libxPlaySDK.a ..\..\..\XMusic\bin
+        QMAKE_POST_LINK += copy /Y $$DESTDIR\xPlaySdk.dll $$XMusicDir\bin && \
+            copy /Y $$DESTDIR\libxPlaySDK.a $$XMusicDir\bin
 }
 
 #CONFIG += debug_and_release
 CONFIG(debug, debug|release) {
-build_dir = xPlaySDKd
+BuildDir = xPlaySDKd
 } else {
-build_dir = xPlaySDK
+BuildDir = xPlaySDK
 }
-build_dir = ../../../build/$$build_dir/$$platform
+BuildDir = ../../../build/$$BuildDir/$$platform
 
-MOC_DIR = $$build_dir
-RCC_DIR = $$build_dir
-UI_DIR = $$build_dir
-OBJECTS_DIR = $$build_dir
+MOC_DIR = $$BuildDir
+RCC_DIR = $$BuildDir
+UI_DIR = $$BuildDir
+OBJECTS_DIR = $$BuildDir
