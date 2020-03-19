@@ -2,38 +2,25 @@
 
 #include "util/util.h"
 
-extern "C"
-{
-#define __STDC_CONSTANT_MACROS
+//ITxtWriter& g_playsdkLogger(m_logger);
+
+/*#define __STDC_CONSTANT_MACROS
 #ifdef _STDINT_H
 #undef _STDINT_H
-#endif
-
+#endif*/
 #include <stdint.h>
 
+extern "C"
+{
 #if !__android
 //#define SDL_MAIN_HANDLED
 #include "../../../3rd/SDL2/include/SDL.h"
 #undef main
 #endif
 
-//#include "libavfilter/avfilter.h"
-//#include "libavfilter/buffersink.h"
-//#include "libavfilter/buffersrc.h"
-
-//#include "libavdevice/avdevice.h"
-//#include "libswscale/swscale.h"
-
-#include "libavutil/pixfmt.h"
-#include "libavutil/opt.h"
-#include "libavutil/imgutils.h"
-
-#include "libswresample/swresample.h"
-
-#include "libavcodec/avfft.h"
-#include "libavcodec/avcodec.h"
-
 #include "libavformat/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libswresample/swresample.h"
 }
 
 struct tagSLDevInfo
