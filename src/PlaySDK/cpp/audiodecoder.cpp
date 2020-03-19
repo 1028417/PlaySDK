@@ -183,15 +183,10 @@ int32_t AudioDecoder::_decodePacket(bool& bQueedEmpty)
 	}
 
     int32_t iRet = _receiveFrame();
-	if (iRet < 0)
-	{
-		av_packet_unref(&m_DecodeData.packet);
-		return -1;
-	}
 
 	if (m_DecodeData.sendReturn != AVERROR(EAGAIN))
 	{
-		av_packet_unref(&m_DecodeData.packet);
+        av_packet_unref(&packet);
 	}
 
 	return iRet;
