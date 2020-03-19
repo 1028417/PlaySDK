@@ -155,11 +155,6 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
         auto eRet = __decoder.open(bForce48KHz);
 		if (eRet != E_DecoderRetCode::DRC_Success)
         {
-            /*m_thread.start([&, cbStop]() {
-                mtutil::usleep(100);
-                cbStop(__decoder.decodeStatus() != E_DecodeStatus::DS_Cancel);
-            });*/
-
 			return false;
 		}
 

@@ -113,7 +113,7 @@ int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, int nMaxBufSize, uint8_t*& 
 
 		avcodec_flush_buffers(m_codecCtx);
 
-		mtutil::usleep(10);
+		//mtutil::usleep(10);
 
 		return 0;
 	}
@@ -196,17 +196,16 @@ int32_t AudioDecoder::_receiveFrame()
 {
 	AVFrame *frame = av_frame_alloc();
 	if (NULL == frame)
-	{
-        // "Decode audio frame alloc failed.";
+    {
 		return -1;
 	}
 
 	int nRet = avcodec_receive_frame(m_codecCtx, frame);
 	if (nRet < 0)
 	{
-		av_frame_free(&frame);
+        av_frame_free(&frame);
 
-        // "Audio frame decode failed, error code: " << ret;
+        g_logger << "avcodec_receive_frame fail: " >> nRet;
 		if (nRet == AVERROR(EAGAIN))
 		{
 			return 0;
@@ -313,7 +312,7 @@ void AudioDecoder::close()
 
     m_SLEngine.close();
 
-	mtutil::usleep(10);
+	//mtutil::usleep(10);
 
 	_clearData();
 }

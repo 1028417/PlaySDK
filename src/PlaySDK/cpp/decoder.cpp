@@ -265,9 +265,7 @@ void Decoder::pause()
 	{
 		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Paused;
 
-		//av_read_pause(m_pFormatCtx); // 暂停网络流
-
-		m_audioDecoder.pause(true);
+        //m_audioDecoder.pause(true);
 	}
 }
 

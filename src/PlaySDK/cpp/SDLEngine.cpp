@@ -53,10 +53,8 @@ void CSDLEngine::audioCallback(void *userdata, uint8_t *stream, int nBufSize)
         int len = pThis->m_cb(nBufSize, lpBuff);
         if (len > 0)
 		{
-			//if (NULL != lpBuff)
-			{
-				SDL_MixAudio(stream, lpBuff, len, pThis->m_volume*SDL_MIX_MAXVOLUME / 100);
-			}
+            //if (lpBuff)
+            SDL_MixAudio(stream, lpBuff, len, pThis->m_volume*SDL_MIX_MAXVOLUME / 100);
 
             nBufSize -= len;
             if (nBufSize <= 0)
@@ -68,12 +66,11 @@ void CSDLEngine::audioCallback(void *userdata, uint8_t *stream, int nBufSize)
         }
         else if (0 == len)
 		{
-			mtutil::usleep(1);
-			continue;
+            mtutil::usleep(50);
 		}
 		else
 		{
-			//mtutil::usleep(10);
+			//mtutil::usleep(50);
 			break;
 		}
     }
