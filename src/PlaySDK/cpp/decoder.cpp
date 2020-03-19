@@ -205,10 +205,16 @@ E_DecodeStatus Decoder::start()
             {
                 continue;
             }
+
+            /*if (AVERROR_EOF != nRet)
+            {
+                continue;
+            }*/
+
             //if (!m_audioOpaque.eof()) continue;
-            
-			bReadFinished = true;
-			break;
+
+            bReadFinished = true;
+            break;
 		}
 
         if (packet.stream_index == m_audioStreamIdx)

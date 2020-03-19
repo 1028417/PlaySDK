@@ -2,13 +2,15 @@
 
 #include "util/util.h"
 
-//ITxtWriter& g_playsdkLogger(m_logger);
+extern ITxtWriter& g_logger;
 
-/*#define __STDC_CONSTANT_MACROS
-#ifdef _STDINT_H
-#undef _STDINT_H
-#endif*/
+/*
+//#define __STDC_CONSTANT_MACROS
+//#ifdef _STDINT_H
+//#undef _STDINT_H
+//#endif
 #include <stdint.h>
+*/
 
 extern "C"
 {
