@@ -265,7 +265,7 @@ void Decoder::pause()
 	{
 		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Paused;
 
-        //m_audioDecoder.pause(true);
+        m_audioDecoder.pause(true);
 	}
 }
 
