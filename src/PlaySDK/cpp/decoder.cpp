@@ -201,17 +201,17 @@ E_DecodeStatus Decoder::start()
 		int nRet = av_read_frame(m_pFormatCtx, &packet);
 		if (nRet < 0)
         {
+			if (AVERROR_EOF != nRet)
+			{
+				g_logger << "av_read_frame fail: " >> nRet;
+			}
+			
             if (m_seekPos >= 0)
             {
                 continue;
             }
 
-            /*if (AVERROR_EOF != nRet)
-            {
-                continue;
-            }*/
-
-            //if (!m_audioOpaque.eof()) continue;
+			//if (!m_audioOpaque.eof()) continue;
 
             bReadFinished = true;
             break;

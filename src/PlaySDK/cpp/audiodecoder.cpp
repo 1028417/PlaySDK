@@ -157,24 +157,29 @@ int32_t AudioDecoder::_decodePacket(bool& bQueedEmpty)
 	m_DecodeData.audioBuf = nullptr;
 
 	AVPacket& packet = m_DecodeData.packet;
-	/* get new packet whiel last packet all has been resolved */
+	/* get new packet while last packet all has been resolved */
 	if (m_DecodeData.sendReturn != AVERROR(EAGAIN))
 	{
 		if (!m_packetQueue.dequeue(packet, false))
 		{
 			bQueedEmpty = true;
-
 			return 0;
 		}
 	}
 	
 	/* while return -11 means packet have data not resolved, this packet cannot be unref */
 	m_DecodeData.sendReturn = avcodec_send_packet(m_codecCtx, &packet);
-	if (m_DecodeData.sendReturn < 0 && m_DecodeData.sendReturn != AVERROR(EAGAIN) && m_DecodeData.sendReturn != AVERROR_EOF)
+	if (m_DecodeData.sendReturn < 0)
 	{
-        // "Audio send to decoder failed, error code: " << sendReturn;'
-		av_packet_unref(&packet);
-		return -1;
+		g_logger << "avcodec_send_packet fail: " >> m_DecodeData.sendReturn;
+
+		//AVERROR_INVALIDDATA
+		// AVERROR_EOF
+		if (m_DecodeData.sendReturn != AVERROR(EAGAIN))
+		{
+			av_packet_unref(&packet);
+			return -1;
+		}
 	}
 
     int32_t iRet = _receiveFrame();

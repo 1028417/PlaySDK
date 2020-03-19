@@ -3,8 +3,8 @@
 
 #include "decoder.h"
 
-//static CUTF8TxtWriter m_logger;
-//ITxtWriter& g_playsdkLogger(m_logger);
+static CUTF8TxtWriter m_logger;
+ITxtWriter& g_logger(m_logger);
 
 #if !__windows
 #define _aligned_free(p) free(p)
@@ -111,31 +111,20 @@ bool CAudioOpaque::seekingFlag() const
 
 int CPlayer::InitSDK()
 {
-	//if (!m_logger.is_open())
-	//{
-	//	m_logger.open(L"playsdk.log", true);
-	//	g_playsdkLogger >> "InitSDK";
-	//}
+	m_logger.open(L"playsdk.log", true);
+	g_logger >> "InitSDK";
 
 #if __android
     return CSLESEngine::init();
 #else
-    int nRet = CSDLEngine::init();
-    //if (nRet != 0)
-    //{
-    //    g_playsdkLogger << "initSDLEngine fail: " >> CSDLEngine::getErrMsg();
-    //}
-    return nRet;
+	return CSDLEngine::init();
 #endif
 }
 
 void CPlayer::QuitSDK()
 {
-    //if (m_logger.is_open())
-    //{
-    //    g_playsdkLogger >> "QuitSDK";
-    //    m_logger.close();
-    //}
+	g_logger >> "QuitSDK";
+    m_logger.close();
 
 #if __android
     CSLESEngine::quit();
