@@ -7,15 +7,17 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
 {
     auto pDecoder = (Decoder*)opaque;
     size_t uReadSize = pDecoder->m_audioOpaque.read(buf, bufSize);
-    if (0 == uReadSize)
+    if (uReadSize > 0)
     {
-		if (!pDecoder->m_audioOpaque.isOnline() || pDecoder->m_audioOpaque.streamEof())
-		{
-			return AVERROR_EOF;
-		}
+        return uReadSize;
     }
 
-    return uReadSize;
+    if (pDecoder->m_audioOpaque.isOnline() && !pDecoder->m_audioOpaque.streamEof())
+    {
+        return 0;
+    }
+
+    return AVERROR_EOF;
 }
 
 int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
