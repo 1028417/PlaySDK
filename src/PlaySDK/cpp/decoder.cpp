@@ -3,21 +3,15 @@
 
 #include "decoder.h"
 
-int Decoder::_readOpaque(void *opaque, uint8_t *buf, int bufSize)
+int Decoder::_readOpaque(void *opaque, uint8_t *buf, int size)
 {
     auto pDecoder = (Decoder*)opaque;
-    size_t uReadSize = pDecoder->m_audioOpaque.read(buf, bufSize);
-    if (uReadSize > 0)
+    if (!pDecoder->m_audioOpaque.read(buf, (UINT&)size))
     {
-        return uReadSize;
+        return AVERROR_EOF;
     }
 
-    if (pDecoder->m_audioOpaque.isOnline() && !pDecoder->m_audioOpaque.streamEof())
-    {
-        return 0;
-    }
-
-    return AVERROR_EOF;
+    return size;
 }
 
 int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
