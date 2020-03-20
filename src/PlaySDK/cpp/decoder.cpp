@@ -202,12 +202,10 @@ E_DecodeStatus Decoder::start()
 				g_logger << "av_read_frame fail: " >> nRet;
 			}
 			
-            if (m_seekPos >= 0)
+            /*if (m_seekPos >= 0)
             {
                 continue;
-            }
-
-			//if (!m_audioOpaque.eof()) continue;
+            }*/
 
             bReadFinished = true;
             break;

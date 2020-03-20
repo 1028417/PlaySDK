@@ -63,7 +63,7 @@ android {
 	platform = win
         DESTDIR = ..\..\bin
 
-        QMAKE_POST_LINK += copy /Y $$DESTDIR\xPlaySdk.dll $$XMusicDir\bin && \
+        QMAKE_POST_LINK += copy /Y $$DESTDIR\xPlaySDK.dll $$XMusicDir\bin && \
             copy /Y $$DESTDIR\libxPlaySDK.a $$XMusicDir\bin
 }
 
