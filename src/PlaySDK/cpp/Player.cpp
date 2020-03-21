@@ -138,18 +138,22 @@ void CPlayer::QuitSDK()
 
 void CPlayer::Stop()
 {
-	mutex_lock lock(m_mutex);
-
-	__decoder.cancel();
-	m_thread.cancel();
+    mutex_lock lock(m_mutex);
+    if (m_thread.joinable())
+    {
+        __decoder.cancel();
+        m_thread.join();
+    }
 }
 
 bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 {
     mutex_lock lock(m_mutex);
-
-	__decoder.cancel();
-	m_thread.cancel();
+    if (m_thread.joinable())
+    {
+        __decoder.cancel();
+        m_thread.join();
+    }
 
     if (!m_AudioOpaque.isOnline())
 	{
@@ -165,7 +169,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 		}
 	}
 
-    m_thread.start([=]() {
+    m_thread = thread([=]() {
         if (m_AudioOpaque.isOnline())
 		{
             auto eRet = __decoder.open(bForce48KHz);
@@ -191,15 +195,11 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 
 uint32_t CPlayer::GetDuration()
 {
-	mutex_lock lock(m_mutex);
-
 	return __decoder.duration();
 }
 
 uint64_t CPlayer::GetClock()
 {
-    mutex_lock lock(m_mutex);
-
     return __decoder.getClock();
 }
 
@@ -214,29 +214,33 @@ int CPlayer::devSampleRate() const
 
 void CPlayer::Seek(UINT uPos)
 {
-    mutex_lock lock(m_mutex);
-
-    __decoder.seek(uPos*__1e6);
+    if (m_mutex.try_lock())
+    {
+        __decoder.seek(uPos*__1e6);
+        m_mutex.unlock();
+    }
 }
 
 void CPlayer::Pause()
 {
-    mutex_lock lock(m_mutex);
-	
-	__decoder.pause();
+    if (m_mutex.try_lock())
+    {
+        __decoder.pause();
+        m_mutex.unlock();
+    }
 }
 
 void CPlayer::Resume()
 {
-    mutex_lock lock(m_mutex);
-
-	__decoder.resume();
+    if (m_mutex.try_lock())
+    {
+        __decoder.resume();
+        m_mutex.unlock();
+    }
 }
 
 void CPlayer::SetVolume(UINT uVolume)
 {
-	mutex_lock lock(m_mutex);
-
 	__decoder.setVolume(uVolume);
 }
 

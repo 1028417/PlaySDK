@@ -264,11 +264,10 @@ void Decoder::pause()
 void Decoder::resume()
 {
 	if (E_DecodeStatus::DS_Paused == m_DecodeStatus.eDecodeStatus)
-	{
-		//av_read_play(m_pFormatCtx); // 恢复网络流
-		m_audioDecoder.pause(false);
+    {
+        m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
-		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
+		m_audioDecoder.pause(false);
 	}
 }
 
