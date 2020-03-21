@@ -162,11 +162,6 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
         {
 			return false;
 		}
-
-		if (0 != uStartPos)
-		{
-			__decoder.seek(uStartPos);
-		}
 	}
 
     m_thread = thread([=]() {
@@ -179,14 +174,9 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 
 				return;
 			}
-
-			if (0 != uStartPos)
-			{
-				__decoder.seek(uStartPos);
-			}
 		}
 
-        (void)__decoder.start();
+        (void)__decoder.start(uStartPos);
         cbStop(false);
 	});
 	
@@ -216,7 +206,13 @@ void CPlayer::Seek(UINT uPos)
 {
     if (m_mutex.try_lock())
     {
-        __decoder.seek(uPos*__1e6);
+		__decoder.seek(uPos*__1e6);
+
+		if (__decoder.decodeStatus() == E_DecodeStatus::DS_Paused)
+		{
+			__decoder.resume();
+		}
+		
         m_mutex.unlock();
     }
 }

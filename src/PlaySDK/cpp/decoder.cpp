@@ -149,10 +149,19 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 	return E_DecoderRetCode::DRC_Success;
 }
 
-E_DecodeStatus Decoder::start()
+E_DecodeStatus Decoder::start(uint64_t uPos)
 {
     auto& bReadFinished = m_DecodeStatus.bReadFinished;
     bReadFinished = false;
+
+	if (uPos > 0)
+	{
+		m_seekPos = uPos;
+	}
+	else
+	{
+		m_seekPos = -1;
+	}
 
 	AVPacket packet;
 	while (true)

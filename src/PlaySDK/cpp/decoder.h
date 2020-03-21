@@ -95,7 +95,7 @@ public:
 
         E_DecoderRetCode open(bool bForce48KHz);
 
-        E_DecodeStatus start();
+        E_DecodeStatus start(uint64_t uPos=0);
 
 	void cancel();
 
