@@ -95,10 +95,6 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 		nextSampleRateIdx--;
 	}
 	
-	auto fnOpen = [&]()->bool {
-		return 0 == SDL_OpenAudio(&wantSpec, &m_spec);
-	};
-
 	for (wantSpec.channels = (Uint8)channels; ;)
 	{
 		bool bFlag = false;
@@ -106,7 +102,7 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 		int t_nextSampleRateIdx = nextSampleRateIdx;
 		for (wantSpec.freq = sampleRate; ; )
 		{
-			if (fnOpen())
+			if (0 == SDL_OpenAudio(&wantSpec, &m_spec))
 			{
 				if (m_spec.format == wantSpec.format)
 				{

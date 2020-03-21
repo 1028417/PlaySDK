@@ -17,7 +17,7 @@ struct tagDecodeData
 	{
 		sendReturn = 0;
 
-		audioBuf = nullptr;
+		audioBuf = NULL;
 		audioBufSize = 0;
 
 		audioSrcFmt = AV_SAMPLE_FMT_NONE;
@@ -35,7 +35,7 @@ struct tagDecodeData
 	uint8_t *audioBuf = NULL;
     uint32_t audioBufSize = 0;
 
-	AVSampleFormat audioSrcFmt;
+	AVSampleFormat audioSrcFmt = AV_SAMPLE_FMT_NONE;
 	int64_t audioSrcChannelLayout = 0;
 	int audioSrcFreq = 0;
 
