@@ -99,10 +99,10 @@ public:
 
 	void cancel();
 
-	void pause();
-	void resume();
+        bool pause();
+        bool resume();
 	
-	void seek(uint64_t pos);
+        bool seek(uint64_t pos);
 
         bool seekingFlag() const
         {

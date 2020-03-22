@@ -260,37 +260,50 @@ void Decoder::cancel()
     m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
 }
 
-void Decoder::pause()
+bool Decoder::pause()
 {
-	if (E_DecodeStatus::DS_Decoding == m_DecodeStatus.eDecodeStatus)
+    if (E_DecodeStatus::DS_Decoding == m_DecodeStatus.eDecodeStatus && isOpened())
 	{
 		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Paused;
 
         m_audioDecoder.pause(true);
+
+        return true;
 	}
+
+    return false;
 }
 
-void Decoder::resume()
+bool Decoder::resume()
 {
 	if (E_DecodeStatus::DS_Paused == m_DecodeStatus.eDecodeStatus)
     {
         m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
 		m_audioDecoder.pause(false);
+
+        return true;
 	}
+
+    return false;
+}
+
+bool Decoder::seek(uint64_t pos)
+{
+    if (isOpened())
+    {
+        //if (-1 == m_seekPos)
+        m_seekPos = pos;
+
+        return true;
+    }
+
+    return false;
 }
 
 void Decoder::setVolume(uint8_t volume)
 {
     m_audioDecoder.setVolume(volume);
-}
-
-void Decoder::seek(uint64_t pos)
-{
-    //if (-1 == m_seekPos)
-    {
-        m_seekPos = pos;
-    }
 }
 
 void Decoder::_cleanup()

@@ -202,37 +202,48 @@ int CPlayer::devSampleRate() const
 	return __decoder.devSampleRate();
 }
 
-void CPlayer::Seek(UINT uPos)
+bool CPlayer::Pause()
 {
+    bool bRet = false;
     if (m_mutex.try_lock())
     {
-		__decoder.seek(uPos*__1e6);
-
-		if (__decoder.decodeStatus() == E_DecodeStatus::DS_Paused)
-		{
-			__decoder.resume();
-		}
-		
+        bRet = __decoder.pause();
         m_mutex.unlock();
     }
+    return bRet;
 }
 
-void CPlayer::Pause()
+bool CPlayer::Resume()
 {
+    bool bRet = false;
     if (m_mutex.try_lock())
     {
-        __decoder.pause();
+        bRet = __decoder.resume();
         m_mutex.unlock();
     }
+    return bRet;
 }
 
-void CPlayer::Resume()
+bool CPlayer::Seek(UINT uPos)
 {
+    bool bRet = false;
     if (m_mutex.try_lock())
     {
-        __decoder.resume();
+        if (m_AudioOpaque.seekable() && __decoder.seek(uPos*__1e6))
+        {
+            if (__decoder.decodeStatus() == E_DecodeStatus::DS_Paused)
+            {
+                bRet = __decoder.resume();
+            }
+            else
+            {
+                bRet = true;
+            }
+        }
+
         m_mutex.unlock();
     }
+    return bRet;
 }
 
 void CPlayer::SetVolume(UINT uVolume)
