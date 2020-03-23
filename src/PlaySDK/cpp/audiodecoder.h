@@ -122,7 +122,7 @@ public:
 	void close();
 
 private:
-    int _cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufSize);
+    size_t _cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufSize);
 
     int32_t _decodePacket(bool& bQueedEmpty);
     int32_t _receiveFrame();

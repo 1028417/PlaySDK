@@ -129,7 +129,7 @@ bool CSLESEngine::_create()
     }
 
     //设置回调函数
-    re = (*m_bf)->RegisterCallback(m_bf, PcmCall, this);
+    re = (*m_bf)->RegisterCallback(m_bf, _cb, this);
     if(SL_RESULT_SUCCESS != re)
     {
         //g_playsdkLogger << "bf RegisterCallback fail" >> re;
@@ -172,7 +172,6 @@ bool CSLESEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& 
     }
 
     //设置为播放状态
-    m_eStatus = E_SLDevStatus::Ready;
     pause(false);
 
     (*m_bf)->Enqueue(m_bf, "", 1);
@@ -184,25 +183,12 @@ bool CSLESEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& 
     return true;
 }
 
-void CSLESEngine::PcmCall(SLAndroidSimpleBufferQueueItf bf, void *contex)
-{
-    (void)bf;
-    CSLESEngine *pSLESEngine = (CSLESEngine*)contex;
-    pSLESEngine->_PcmCall();
-}
-
-void CSLESEngine::_PcmCall()
+inline void CSLESEngine::_cb()
 {
     while (true)
     {
         uint8_t *lpBuff = NULL;
-        int len = m_cb(lpBuff);
-        if (-1 == len)
-        {
-            //g_logger >> "PcmSize: -1";
-            //(*m_bf)->Enqueue(m_bf,"",1);
-            break;
-        }
+        size_t len = m_cb(lpBuff);
 
         while (E_SLDevStatus::Pause == m_eStatus)
         {
@@ -220,10 +206,15 @@ void CSLESEngine::_PcmCall()
         }
         else
         {
-            //g_logger >> "PcmSize: 0";
             mtutil::usleep(50);
         }
     }
+}
+
+void CSLESEngine::_cb(SLAndroidSimpleBufferQueueItf, void *contex)
+{
+    auto engine = (CSLESEngine*)contex;
+    engine->_cb();
 }
 
 void CSLESEngine::pause(bool bPause)

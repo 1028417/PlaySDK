@@ -3,11 +3,10 @@
 #include "inc.h"
 
 #if __android
-
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
-using CB_SLESStream = std::function<int(uint8_t*& lpBuff)>;
+using CB_SLESStream = std::function<size_t(uint8_t*& lpBuff)>;
 
 //1 创建引擎
 class CSLESEngine : public IAudioDevEngine
@@ -49,8 +48,8 @@ private:
 
     void _destroy();
 
-    static void PcmCall(SLAndroidSimpleBufferQueueItf bf, void *contex);
-    void _PcmCall();
+    static void _cb(SLAndroidSimpleBufferQueueItf, void *contex);
+    void _cb();
 };
 
 #endif

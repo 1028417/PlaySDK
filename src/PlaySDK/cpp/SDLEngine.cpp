@@ -2,7 +2,6 @@
 #include "SDLEngine.h"
 
 #if !__android
-
 /*  soundtrack array use to adjust */
 static const int g_lpNextNbChannels[] = { 0, 0, 1, 6, 2, 6, 4, 6 };
 
@@ -38,54 +37,47 @@ string CSDLEngine::getErrMsg()
 	{
 		return 0;
 	}
-	
 	return atoi(env);
 }*/
 
-inline void CSDLEngine::_audioCallback(uint8_t *stream, int size)
+inline void CSDLEngine::_cb(uint8_t *stream, int size)
 {
     while (true)
     {
         Uint8 *lpBuff = NULL;
-        int len = m_cb(lpBuff, size);
-		if (-1 == len)
-		{
-			break;
-		}
+        size_t len = m_cb(lpBuff, size);
 
-        while (E_SLDevStatus::Pause == m_eStatus)
+        /*while (E_SLDevStatus::Pause == m_eStatus)
         {
             mtutil::usleep(50);
         }
         if (E_SLDevStatus::Close == m_eStatus)
         {
             return;
-        }
-
-		if (len > 0)
-		{
-			//if (lpBuff)
-			SDL_MixAudio(stream, lpBuff, len, SDL_MIX_MAXVOLUME * m_volume / 100);
-
-            size -= len;
-            if (size <= 0)
-			{
-				break;
-            }
-			stream += len;
-        }
-		else
+        }*/
+		
+		if (0 == len)
 		{
 			mtutil::usleep(50);
+			break;
 		}
+		
+		SDL_MixAudio(stream, lpBuff, len, SDL_MIX_MAXVOLUME * m_volume / 100);
+
+        size -= len;
+        if (size <= 0)
+		{
+			break;
+        }
+		stream += len;
     }
 }
 
-void SDLCALL CSDLEngine::_audioCallback(void *userdata, uint8_t *stream, int size)
+void SDLCALL CSDLEngine::_cb(void *userdata, uint8_t *stream, int size)
 {
     SDL_memset(stream, 0, size);
     CSDLEngine *engine = (CSDLEngine*)userdata;
-    engine->_audioCallback(stream, size);
+    engine->_cb(stream, size);
 }
 
 bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& DevInfo)
@@ -98,7 +90,7 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 
 	//wantSpec.silence = 0;
 
-	wantSpec.callback = _audioCallback;
+    wantSpec.callback = _cb;
 	wantSpec.userdata = this;
 
 	int nextSampleRateIdx = FF_ARRAY_ELEMS(g_lpNextSampleRates) - 1;
@@ -162,7 +154,7 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 		DevInfo.audioDstFmt = AV_SAMPLE_FMT_S16;
     }
 
-    m_eStatus = E_SLDevStatus::Ready;
+    //m_eStatus = E_SLDevStatus::Ready;
 	SDL_PauseAudio(0);
 
 	return true;
@@ -170,13 +162,13 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 
 void CSDLEngine::pause(bool bPause)
 {
-    m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
-	//SDL_PauseAudio(bPause?1:0);
+    //m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
+	SDL_PauseAudio(bPause?1:0);
 }
 
 void CSDLEngine::close()
 {
-    m_eStatus = E_SLDevStatus::Close;
+    //m_eStatus = E_SLDevStatus::Close;
 	SDL_CloseAudio();
 }
 #endif

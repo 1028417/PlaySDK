@@ -96,13 +96,13 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
     return true;
 }
 
-int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufSize)
+size_t AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufSize)
 {
-    if (E_DecodeStatus::DS_Cancel == DecodeStatus.eDecodeStatus
+    /*if (E_DecodeStatus::DS_Cancel == DecodeStatus.eDecodeStatus
             || E_DecodeStatus::DS_Finished == DecodeStatus.eDecodeStatus)
 	{
-		return -1;
-	}
+        return 0;
+    }*/
 
 	if (m_seekPos >= 0)
 	{
@@ -124,7 +124,7 @@ int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufS
 		if (audioBufSize < 0 || (bQueedEmpty && DecodeStatus.bReadFinished))
 		{
 			DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Finished;
-			return -1;
+            return 0;
 		}
 
 		if (0 == audioBufSize)
@@ -307,9 +307,9 @@ int32_t AudioDecoder::_convertFrame(AVFrame& frame)
 
 void AudioDecoder::close()
 {
-	m_packetQueue.clear();
-
     m_SLEngine.close();
+
+    m_packetQueue.clear();
 
 	_clearData();
 }
