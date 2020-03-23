@@ -42,38 +42,50 @@ string CSDLEngine::getErrMsg()
 	return atoi(env);
 }*/
 
-void CSDLEngine::audioCallback(void *userdata, uint8_t *stream, int nBufSize)
+inline void CSDLEngine::_audioCallback(uint8_t *stream, int size)
 {
-    SDL_memset(stream, 0, nBufSize);
-
-    CSDLEngine *pThis = (CSDLEngine*)userdata;
     while (true)
     {
         Uint8 *lpBuff = NULL;
-        int len = pThis->m_cb(nBufSize, lpBuff);
-        if (len > 0)
+        int len = m_cb(lpBuff, size);
+		if (-1 == len)
 		{
-            //if (lpBuff)
-            SDL_MixAudio(stream, lpBuff, len, pThis->m_volume*SDL_MIX_MAXVOLUME / 100);
-
-            nBufSize -= len;
-            if (nBufSize <= 0)
-            {
-                break;
-            }
-
-            stream += len;
-        }
-        else if (0 == len)
-		{
-            mtutil::usleep(50);
-		}
-		else
-		{
-			//mtutil::usleep(50);
 			break;
 		}
+
+        while (E_SLDevStatus::Pause == m_eStatus)
+        {
+            mtutil::usleep(50);
+        }
+        if (E_SLDevStatus::Close == m_eStatus)
+        {
+            return;
+        }
+
+		if (len > 0)
+		{
+			//if (lpBuff)
+			SDL_MixAudio(stream, lpBuff, len, SDL_MIX_MAXVOLUME * m_volume / 100);
+
+            size -= len;
+            if (size <= 0)
+			{
+				break;
+            }
+			stream += len;
+        }
+		else
+		{
+			mtutil::usleep(50);
+		}
     }
+}
+
+void SDLCALL CSDLEngine::_audioCallback(void *userdata, uint8_t *stream, int size)
+{
+    SDL_memset(stream, 0, size);
+    CSDLEngine *engine = (CSDLEngine*)userdata;
+    engine->_audioCallback(stream, size);
 }
 
 bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& DevInfo)
@@ -86,7 +98,7 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 
 	//wantSpec.silence = 0;
 
-	wantSpec.callback = audioCallback;
+	wantSpec.callback = _audioCallback;
 	wantSpec.userdata = this;
 
 	int nextSampleRateIdx = FF_ARRAY_ELEMS(g_lpNextSampleRates) - 1;
@@ -148,33 +160,23 @@ bool CSDLEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& D
 		break;
     default:
 		DevInfo.audioDstFmt = AV_SAMPLE_FMT_S16;
-	}
+    }
 
-	pause(false);
+    m_eStatus = E_SLDevStatus::Ready;
+	SDL_PauseAudio(0);
 
 	return true;
 }
 
 void CSDLEngine::pause(bool bPause)
 {
-   SDL_PauseAudio(bPause?1:0);
+    m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
+	//SDL_PauseAudio(bPause?1:0);
 }
 
 void CSDLEngine::close()
 {
-   SDL_CloseAudio();
+    m_eStatus = E_SLDevStatus::Close;
+	SDL_CloseAudio();
 }
-
-/*static void lock(bool bLock)
-{
-   if (bLock)
-   {
-       SDL_LockAudio();
-   }
-   else
-   {
-       SDL_UnlockAudio();
-   }
-}*/
-
 #endif

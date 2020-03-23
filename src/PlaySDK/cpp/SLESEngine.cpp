@@ -50,7 +50,7 @@ void CSLESEngine::quit()
     }
 }
 
-bool CSLESEngine::_init()
+bool CSLESEngine::_create()
 {
     if (NULL == g_engine)
     {
@@ -165,13 +165,14 @@ bool CSLESEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& 
 
     if (!m_player)
     {
-        if (!_init())
+        if (!_create())
         {
             return false;
         }
     }
 
     //设置为播放状态
+    m_eStatus = E_SLDevStatus::Ready;
     pause(false);
 
     (*m_bf)->Enqueue(m_bf, "", 1);
@@ -196,28 +197,32 @@ void CSLESEngine::_PcmCall()
     {
         uint8_t *lpBuff = NULL;
         int len = m_cb(lpBuff);
-        if (0 == len)
+        if (-1 == len)
         {
-            //g_logger >> "PcmSize: 0";
+            //g_logger >> "PcmSize: -1";
+            //(*m_bf)->Enqueue(m_bf,"",1);
+            break;
+        }
+
+        while (E_SLDevStatus::Pause == m_eStatus)
+        {
             mtutil::usleep(50);
-            continue;
+        }
+        if (E_SLDevStatus::Close == m_eStatus)
+        {
+            return;
         }
 
         if (len > 0)
         {
-            //if (NULL != lpBuff)
-            {
-                (*m_bf)->Enqueue(m_bf,lpBuff,len);
-            }
+            (*m_bf)->Enqueue(m_bf,lpBuff,len);
+            break;
         }
         else
         {
-            //g_logger >> "PcmSize: -1";
+            //g_logger >> "PcmSize: 0";
             mtutil::usleep(50);
-            (*m_bf)->Enqueue(m_bf,"",1);
         }
-
-        break;
     }
 }
 
@@ -225,6 +230,7 @@ void CSLESEngine::pause(bool bPause)
 {
     if (m_playIf)
     {
+        m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
         if (bPause)
         {
             (*m_playIf)->SetPlayState(m_playIf, SL_PLAYSTATE_PAUSED);
@@ -240,6 +246,7 @@ void CSLESEngine::close()
 {
     if (m_playIf)
     {
+        m_eStatus = E_SLDevStatus::Close;
         (*m_bf)->Clear(m_bf);
         (*m_playIf)->SetPlayState(m_playIf,SL_PLAYSTATE_STOPPED);
     }

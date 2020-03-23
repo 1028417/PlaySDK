@@ -13,11 +13,11 @@ AudioDecoder::AudioDecoder(tagDecodeStatus& DecodeStatus)
     : m_SLEngine(
 #if __android
     [&](uint8_t*& lpBuff) {
-		return _cb(DecodeStatus, 0, lpBuff);
+		return _cb(DecodeStatus, lpBuff, 0);
 	}
 #else
-    [&](unsigned int nMaxBufSize, uint8_t*& lpBuff) {
-		return _cb(DecodeStatus, nMaxBufSize, lpBuff);
+    [&](uint8_t*& lpBuff, int size) {
+		return _cb(DecodeStatus, lpBuff, size);
 	}
 #endif
 )
@@ -96,9 +96,10 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
     return true;
 }
 
-int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, int nMaxBufSize, uint8_t*& lpBuff)
+int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufSize)
 {
-	if (E_DecodeStatus::DS_Cancel == DecodeStatus.eDecodeStatus || E_DecodeStatus::DS_Finished == DecodeStatus.eDecodeStatus)
+    if (E_DecodeStatus::DS_Cancel == DecodeStatus.eDecodeStatus
+            || E_DecodeStatus::DS_Finished == DecodeStatus.eDecodeStatus)
 	{
 		return -1;
 	}
@@ -113,9 +114,7 @@ int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, int nMaxBufSize, uint8_t*& 
 
 		avcodec_flush_buffers(m_codecCtx);
 
-		//mtutil::usleep(10);
-
-		return 0;
+        return 0;
 	}
 
 	if (0 == m_DecodeData.audioBufSize)	/* no data in buffer */
@@ -141,9 +140,9 @@ int AudioDecoder::_cb(tagDecodeStatus& DecodeStatus, int nMaxBufSize, uint8_t*& 
     lpBuff = m_DecodeData.audioBuf;
 
 	int len = m_DecodeData.audioBufSize;
-	if (0 != nMaxBufSize)
+	if (nBufSize > 0)
 	{
-        len = MIN(len, nMaxBufSize);
+        len = MIN(len, nBufSize);
 	}
 
 	m_DecodeData.audioBuf += len;
@@ -311,8 +310,6 @@ void AudioDecoder::close()
 	m_packetQueue.clear();
 
     m_SLEngine.close();
-
-	//mtutil::usleep(10);
 
 	_clearData();
 }

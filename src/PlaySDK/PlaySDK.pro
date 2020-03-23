@@ -20,7 +20,12 @@ SOURCES += cpp/Player.cpp \
     cpp/SDLEngine.cpp \
     cpp/SLESEngine.cpp
 
-HEADERS += ../../inc/Player.h  cpp/inc.h
+HEADERS += ../../inc/Player.h  cpp/inc.h \
+    cpp/audiodecoder.h \
+    cpp/avpacketqueue.h \
+    cpp/decoder.h \
+    cpp/SDLEngine.h \
+    cpp/SLESEngine.h
 
 CommonDir = ../../../Common2.1
 INCLUDEPATH += $$CommonDir/inc  ../../3rd/ffmpeg/include

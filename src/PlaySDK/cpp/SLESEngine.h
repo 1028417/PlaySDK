@@ -30,6 +30,8 @@ private:
     SLVolumeItf m_volumeIf = NULL;
     SLAndroidSimpleBufferQueueItf m_bf = NULL;
 
+    E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
+
 public:
     static int init();
     static void quit();
@@ -43,7 +45,7 @@ public:
     void close() override;
 
 private:
-    bool _init();
+    bool _create();
 
     void _destroy();
 

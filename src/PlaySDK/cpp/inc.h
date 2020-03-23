@@ -25,6 +25,13 @@ extern "C"
 #include "libswresample/swresample.h"
 }
 
+enum class E_SLDevStatus
+{
+    Close,
+    Ready,
+    Pause
+};
+
 struct tagSLDevInfo
 {
 	int channels = 0;

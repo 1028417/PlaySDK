@@ -82,8 +82,7 @@ E_DecoderRetCode Decoder::_open()
 		{
 			return E_DecoderRetCode::DRC_Fail;
 		}
-		if (NULL == (m_avio = avio_alloc_context(avioBuff, __avioBuffSize, 0
-            , this, _readOpaque, NULL, m_audioOpaque.seekable() ? _seekOpaque : NULL)))
+		if (NULL == (m_avio = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque)))
 		{
 			return E_DecoderRetCode::DRC_Fail;
 		}
@@ -171,7 +170,8 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
             mtutil::usleep(50);
 			continue;
 		}
-		else if (E_DecodeStatus::DS_Decoding != m_DecodeStatus.eDecodeStatus)
+		
+		if (E_DecodeStatus::DS_Decoding != m_DecodeStatus.eDecodeStatus)
 		{
 			break;
 		}
@@ -179,7 +179,7 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 		/* this seek just use in playing music, while read finished
 		 * & have out of loop, then jump back to seek position */
 	seek:
-		if (m_seekPos>=0)
+		if (m_seekPos>=0 && m_audioOpaque.seekable())
 		{
             int64_t seekPos = av_rescale_q(m_seekPos, av_get_time_base_q(), m_pFormatCtx->streams[m_audioStreamIdx]->time_base);
             if (av_seek_frame(m_pFormatCtx, m_audioStreamIdx, seekPos, AVSEEK_FLAG_BACKWARD) < 0)
@@ -237,7 +237,7 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 		&& E_DecodeStatus::DS_Finished != m_DecodeStatus.eDecodeStatus)
     {
         /* just use at audio playing */
-		if (m_seekPos>=0)
+		if (m_seekPos>=0 && m_audioOpaque.seekable())
 		{
 			goto seek;
 		}
@@ -262,7 +262,7 @@ void Decoder::cancel()
 
 bool Decoder::pause()
 {
-    if (E_DecodeStatus::DS_Decoding == m_DecodeStatus.eDecodeStatus && isOpened())
+    if (E_DecodeStatus::DS_Decoding == m_DecodeStatus.eDecodeStatus)// && isOpened())
 	{
 		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Paused;
 

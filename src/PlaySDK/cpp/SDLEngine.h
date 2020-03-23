@@ -4,7 +4,7 @@
 
 #if !__android
 
-using CB_SDLStream = function<int(int nMaxBufSize, Uint8*& lpBuff)>;
+using CB_SDLStream = function<int(Uint8*& lpBuff, int nBufSize)>;
 
 class CSDLEngine : public IAudioDevEngine
 {
@@ -21,6 +21,8 @@ private:
     CB_SDLStream m_cb;
 	
 	uint8_t m_volume = 100;
+
+    E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
 
 public:
     static string getErrMsg();
@@ -39,7 +41,9 @@ public:
     void close() override;
 
 private:
-    static void SDLCALL audioCallback(void *userdata, uint8_t *stream, int nBufSize);
+    void _audioCallback(uint8_t *stream, int size);
+
+    static void SDLCALL _audioCallback(void *userdata, uint8_t *stream, int size);
 };
 
 #endif
