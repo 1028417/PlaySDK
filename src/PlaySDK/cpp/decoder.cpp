@@ -83,12 +83,13 @@ E_DecoderRetCode Decoder::_open()
 		{
 			return E_DecoderRetCode::DRC_Fail;
         }
-		m_pFormatCtx->pb = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque);
-        if (NULL == m_pFormatCtx->pb)
+		m_pAvioCtx = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque);
+        if (NULL == m_pAvioCtx)
         {
             av_free(avioBuff);
 			return E_DecoderRetCode::DRC_Fail;
 		}
+		m_pFormatCtx->pb = m_pAvioCtx;
 		m_pFormatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 
 		AVInputFormat *pInFmt = NULL;
@@ -321,10 +322,11 @@ void Decoder::_cleanup()
 {
     if (m_pFormatCtx)
 	{
-		if (m_pFormatCtx->pb)
+		if (m_pAvioCtx)
         {
-			av_freep(&m_pFormatCtx->pb->buffer);
-			avio_context_free(&m_pFormatCtx->pb);
+			av_freep(&m_pAvioCtx->buffer);
+			avio_context_free(&m_pAvioCtx);
+			m_pFormatCtx->pb = NULL;
 		}
 
         //avformat_free_context(m_pFormatCtx);
