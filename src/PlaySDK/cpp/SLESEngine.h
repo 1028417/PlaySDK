@@ -6,7 +6,7 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
-using CB_SLESStream = std::function<size_t(uint8_t*& lpBuff)>;
+using CB_SLESStream = std::function<size_t(const uint8_t*& lpBuff)>;
 
 //1 创建引擎
 class CSLESEngine : public IAudioDevEngine
@@ -26,30 +26,31 @@ private:
     SLObjectItf m_player = NULL;
 
     SLPlayItf m_playIf = NULL;
-    SLVolumeItf m_volumeIf = NULL;
     SLAndroidSimpleBufferQueueItf m_bf = NULL;
+    SLVolumeItf m_volumeIf = NULL;
 
-    E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
+    //E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
 
 public:
     static int init();
     static void quit();
 
-    void setVolume(uint8_t volume) override;
-
-    bool open(int channels, int sampleRate, int samples, tagSLDevInfo& DevInfo) override;
+    bool open(tagSLDevInfo& DevInfo) override;
 
     void pause(bool bPause) override;
+
+    void setVolume(uint8_t volume) override;
+
+    void clearbf() override;
 
     void close() override;
 
 private:
-    bool _create();
+    bool _create(uint8_t channels, SLuint32 samplesPerSec, SLuint16 bitsPerSample);
 
     void _destroy();
 
-    static void _cb(SLAndroidSimpleBufferQueueItf, void *contex);
+    static void _cb(SLAndroidSimpleBufferQueueItf, void *context);
     void _cb();
 };
-
 #endif

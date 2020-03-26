@@ -5,18 +5,12 @@
 //#include <android/log.h>
 //#define LOGD(FORMAT,...) __android_log_print(ANDROID_LOG_ERROR,"ywl5320",FORMAT,##__VA_ARGS__);
 
-#define __samplesPerSec SL_SAMPLINGRATE_44_1
-#define __freq 44100
-
-#define __bitsPerSample SL_PCMSAMPLEFORMAT_FIXED_16
-#define __audioDstFmt AV_SAMPLE_FMT_S16
-
 static SLObjectItf g_engine = NULL;
 static SLEngineItf g_engineIf = NULL;
 
 int CSLESEngine::init()
 {
-    SLresult re = slCreateEngine(&g_engine,0,0,0,0,0);
+    SLresult re = slCreateEngine(&g_engine,0,NULL,0,NULL,NULL);
     if(re != SL_RESULT_SUCCESS)
     {
         //g_playsdkLogger << "slCreateEngine fail: " >> re;
@@ -50,7 +44,26 @@ void CSLESEngine::quit()
     }
 }
 
-bool CSLESEngine::_create()
+void CSLESEngine::_destroy()
+{
+    if (m_mix)
+    {
+        (*m_mix)->Destroy(m_mix);
+        m_mix = NULL;
+    }
+
+    if (m_player)
+    {
+        (*m_player)->Destroy(m_player);
+        m_player = NULL;
+
+        m_playIf = NULL;
+        m_bf = NULL;
+        m_volumeIf = NULL;
+    }
+}
+
+bool CSLESEngine::_create(uint8_t channels, SLuint32 samplesPerSec, SLuint16 bitsPerSample)
 {
     if (NULL == g_engine)
     {
@@ -58,8 +71,10 @@ bool CSLESEngine::_create()
         return false;
     }
 
-    //2 创建混音器
-    SLresult re = (*g_engineIf)->CreateOutputMix(g_engineIf,&m_mix,0,0,0);
+    //创建混音器
+    //const SLInterfaceID mids[] {SL_IID_ENVIRONMENTALREVERB}; //SL_IID_VOLUME??
+    //const SLboolean mreq[] {SL_BOOLEAN_FALSE};
+    SLresult re = (*g_engineIf)->CreateOutputMix(g_engineIf,&m_mix,0,NULL,NULL); // mids,mreg);
     if(SL_RESULT_SUCCESS != re)
     {
         //g_playsdkLogger << "CreateOutputMix fail" >> re;
@@ -71,28 +86,34 @@ bool CSLESEngine::_create()
         //g_playsdkLogger << "Realize OutputMix fail" >> re;
         return false;
     }
-    SLDataLocator_OutputMix outmix = {SL_DATALOCATOR_OUTPUTMIX,m_mix};
-    SLDataSink audioSink= {&outmix,0};
+    /*SLEnvironmentalReverbItf envReverb = NULL;
+    re = (*m_mix)->GetInterface(m_mix, SL_IID_ENVIRONMENTALREVERB, &envReverb);
+    if (SL_RESULT_SUCCESS == re) {
+        SLEnvironmentalReverbSettings envReverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
+        (*envReverb)->SetEnvironmentalReverbProperties(envReverb, &envReverbSettings);
+    }*/
 
-    //3 配置音频信息
     //缓冲队列
-    SLDataLocator_AndroidSimpleBufferQueue que = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,10};
-    //音频格式
-    SLDataFormat_PCM pcm = {
+    SLDataLocator_AndroidSimpleBufferQueue que {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,10};
+    SLDataFormat_PCM pcm {
             SL_DATAFORMAT_PCM,
-            2,//    声道数
-            __samplesPerSec,
-            __bitsPerSample,
-            __bitsPerSample,
+            channels,
+            samplesPerSec,
+            bitsPerSample,
+            bitsPerSample,
             SL_SPEAKER_FRONT_LEFT|SL_SPEAKER_FRONT_RIGHT,
             SL_BYTEORDER_LITTLEENDIAN //字节序，小端
     };
-    SLDataSource ds = {&que,&pcm};
 
-    //4 创建播放器
-    const SLInterfaceID ids[] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
-    const SLboolean req[] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
-    re = (*g_engineIf)->CreateAudioPlayer(g_engineIf,&m_player,&ds,&audioSink,sizeof(ids)/sizeof(SLInterfaceID),ids,req);
+    //创建播放器
+    SLDataSource src {&que,&pcm};
+
+    SLDataLocator_OutputMix mix {SL_DATALOCATOR_OUTPUTMIX,m_mix};
+    SLDataSink sink {&mix,NULL};
+
+    const SLInterfaceID ids[] {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
+    const SLboolean req[] {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+    re = (*g_engineIf)->CreateAudioPlayer(g_engineIf,&m_player,&src,&sink,sizeof(ids)/sizeof(SLInterfaceID),ids,req);
     if(SL_RESULT_SUCCESS != re)
     {
         //g_playsdkLogger << "CreateAudioPlayer fail" >> re;
@@ -113,6 +134,19 @@ bool CSLESEngine::_create()
         return false;
     }
 
+    re = (*m_player)->GetInterface(m_player,SL_IID_BUFFERQUEUE,&m_bf);
+    if(SL_RESULT_SUCCESS != re)
+    {
+        //g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
+        return false;
+    }
+    re = (*m_bf)->RegisterCallback(m_bf,_cb,this);
+    if(SL_RESULT_SUCCESS != re)
+    {
+        //g_playsdkLogger << "bf RegisterCallback fail" >> re;
+        return false;
+    }
+
     re = (*m_player)->GetInterface(m_player,SL_IID_VOLUME,&m_volumeIf);
     if(SL_RESULT_SUCCESS != re)
     {
@@ -121,73 +155,50 @@ bool CSLESEngine::_create()
     }
     setVolume(m_volume);
 
-    re = (*m_player)->GetInterface(m_player,SL_IID_BUFFERQUEUE,&m_bf);
-    if(SL_RESULT_SUCCESS != re)
-    {
-        //g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
-        return false;
-    }
-
-    //设置回调函数
-    re = (*m_bf)->RegisterCallback(m_bf, _cb, this);
-    if(SL_RESULT_SUCCESS != re)
-    {
-        //g_playsdkLogger << "bf RegisterCallback fail" >> re;
-        return false;
-    }
+    //SL_IID_EFFECTSEND??
 
     return true;
 }
 
-void CSLESEngine::setVolume(uint8_t volume)
+bool CSLESEngine::open(tagSLDevInfo& DevInfo)
 {
-    if (volume<=100)
+    DevInfo.channels = 2;
+
+    SLuint32 samplesPerSec = 0;
+    if (DevInfo.sample_rate >= 48000)
     {
-        m_volume = volume;
-
-        if (m_volumeIf)
-        {
-            (*m_volumeIf)->SetVolumeLevel(m_volumeIf, SLmillibel((1.0f - volume / 100.0f) * -5000));
-            //(*m_volumeIf)->SetVolumeLevel(m_volumeIf, 20 * -50);
-        }
+        DevInfo.sample_rate = 48000;
+        samplesPerSec = SL_SAMPLINGRATE_48;
     }
-}
+    else
+    {
+        DevInfo.sample_rate = 44100;
+        samplesPerSec = SL_SAMPLINGRATE_44_1;
+    }
 
-bool CSLESEngine::open(int channels, int sampleRate, int samples, tagSLDevInfo& DevInfo)
-{
-    (void)channels;
-    (void)sampleRate;
-    (void)samples;
-
-    //_destroy();
-    //quit();
-    //init();
+    DevInfo.sample_fmt = AV_SAMPLE_FMT_S16;
+    SLuint16 bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
 
     if (!m_player)
     {
-        if (!_create())
+        if (!_create(DevInfo.channels, samplesPerSec, bitsPerSample))
         {
+            _destroy();
             return false;
         }
     }
 
     //设置为播放状态
     pause(false);
-
     (*m_bf)->Enqueue(m_bf, "", 1);
-
-    DevInfo.channels = 2;
-    DevInfo.freq = __freq;
-    DevInfo.audioDstFmt = __audioDstFmt;
 
     return true;
 }
 
-inline void CSLESEngine::_cb()
+/*inline void CSLESEngine::_cb()
 {
-    while (true)
-    {
-        uint8_t *lpBuff = NULL;
+    while (true) {
+        const uint8_t *lpBuff = NULL;
         size_t len = m_cb(lpBuff);
 
         while (E_SLDevStatus::Pause == m_eStatus)
@@ -204,16 +215,36 @@ inline void CSLESEngine::_cb()
             (*m_bf)->Enqueue(m_bf,lpBuff,len);
             break;
         }
-        else
-        {
-            mtutil::usleep(50);
-        }
+
+        mtutil::usleep(50);
     }
+}*/
+
+inline void CSLESEngine::_cb()
+{
+    const uint8_t *lpBuff = NULL;
+    size_t len = m_cb(lpBuff);
+    if (len > 0)
+    {
+        (*m_bf)->Enqueue(m_bf,lpBuff,len);
+        return;
+    }
+
+    mtutil::usleep(50);
+
+    /*len = m_cb(lpBuff);
+    if (len > 0)
+    {
+        (*m_bf)->Enqueue(m_bf,lpBuff,len);
+        return;
+    }*/
+
+    (*m_bf)->Enqueue(m_bf,"",1);
 }
 
-void CSLESEngine::_cb(SLAndroidSimpleBufferQueueItf, void *contex)
+void CSLESEngine::_cb(SLAndroidSimpleBufferQueueItf, void *context)
 {
-    auto engine = (CSLESEngine*)contex;
+    auto engine = (CSLESEngine*)context;
     engine->_cb();
 }
 
@@ -221,7 +252,7 @@ void CSLESEngine::pause(bool bPause)
 {
     if (m_playIf)
     {
-        m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
+        //m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
         if (bPause)
         {
             (*m_playIf)->SetPlayState(m_playIf, SL_PLAYSTATE_PAUSED);
@@ -233,33 +264,33 @@ void CSLESEngine::pause(bool bPause)
     }
 }
 
+void CSLESEngine::setVolume(uint8_t volume)
+{
+    m_volume = MIN(volume, 100);
+
+    if (m_volumeIf)
+    {
+        (*m_volumeIf)->SetVolumeLevel(m_volumeIf, SLmillibel((1.0f - m_volume/100.0f) * -5000));
+        //(*m_volumeIf)->SetVolumeLevel(m_volumeIf, 20 * -50);
+    }
+}
+
+void CSLESEngine::clearbf()
+{
+    if (m_bf)
+    {
+        (*m_bf)->Clear(m_bf);
+    }
+}
+
 void CSLESEngine::close()
 {
     if (m_playIf)
     {
-        m_eStatus = E_SLDevStatus::Close;
-        (*m_bf)->Clear(m_bf);
+        //m_eStatus = E_SLDevStatus::Close;
         (*m_playIf)->SetPlayState(m_playIf,SL_PLAYSTATE_STOPPED);
     }
+
+    //_destroy();
 }
-
-void CSLESEngine::_destroy()
-{
-    if (m_mix)
-    {
-        (*m_mix)->Destroy(m_mix);
-        m_mix = NULL;
-    }
-
-    if (m_player)
-    {
-        (*m_player)->Destroy(m_player);
-        m_player = NULL;
-
-        m_playIf = NULL;
-        m_volumeIf = NULL;
-        m_bf = NULL;
-    }
-}
-
 #endif

@@ -6,68 +6,55 @@
 
 #include "avpacketqueue.h"
 
+#include "resample.h"
+
+#define __eagain (AVERROR(EAGAIN))
+
 struct tagDecodeData
 {
-	tagDecodeData()
-	{
-		init();
-	}
+	tagDecodeData() = default;
 
-	void init()
+	void reset()
 	{
+        if (__eagain == sendReturn)
+        {
+            av_packet_unref(&packet);
+        }
 		sendReturn = 0;
-
+		
 		audioBuf = NULL;
 		audioBufSize = 0;
-
-		audioSrcFmt = AV_SAMPLE_FMT_NONE;
-		audioSrcChannelLayout = 0;
-		audioSrcFreq = 0;
 	}
 
 	int sendReturn = 0;
 
 	AVPacket packet;
 
-	SwrContext *aCovertCtx = NULL;
-	DECLARE_ALIGNED(16, uint8_t, swrAudioBuf)[192000];
-
-	uint8_t *audioBuf = NULL;
-    uint32_t audioBufSize = 0;
-
-	AVSampleFormat audioSrcFmt = AV_SAMPLE_FMT_NONE;
-	int64_t audioSrcChannelLayout = 0;
-	int audioSrcFreq = 0;
-
-	int sample_rate = 0;
-};
-
-struct tagDecodeStatus
-{
-	E_DecodeStatus eDecodeStatus = E_DecodeStatus::DS_Finished;
-
-	bool bReadFinished = false;
+	CResample swr;
+	
+	const uint8_t *audioBuf = NULL;
+	uint32_t audioBufSize = 0;
 };
 
 class AudioDecoder
 {
 public:
-	AudioDecoder(tagDecodeStatus& DecodeStatus);
+    AudioDecoder(AvPacketQueue& packetQueue);
 
 private:
-	AVCodecContext *m_codecCtx = NULL;          // audio codec context
+    AvPacketQueue& m_packetQueue;
+
+	AVCodecContext *m_codecCtx = NULL;
 	
-	tagSLDevInfo m_DevInfo;
+	tagSLDevInfo m_devInfo;
 
 	double m_timeBase = 0;
 	int m_dstByteRate = 0;
 	uint64_t m_clock = 0;
 
-	int64_t m_seekPos = -1;
+    int64_t m_seekPos = -1;
 
 	tagDecodeData m_DecodeData;
-
-	AvPacketQueue m_packetQueue;
 
 #if __android
     CSLESEngine
@@ -77,16 +64,6 @@ private:
     m_SLEngine;
 
 public:
-    bool packetQueueEmpty() const
-    {
-        return m_packetQueue.isEmpty();
-    }
-
-    size_t packetEnqueue(AVPacket& packet)
-    {
-        return m_packetQueue.enqueue(&packet);
-    }
-
     void setVolume(uint8_t volume)
     {
         m_SLEngine.setVolume(volume);
@@ -94,39 +71,36 @@ public:
 
     bool open(AVStream& stream, bool bForce48KHz=false);
 
-    void pause(bool bPause)
-    {
-        m_SLEngine.pause(bPause);
-    }
+    void pause(bool bPause);
 
-	void seek(uint64_t pos)
-	{
-		m_seekPos = pos;
-		m_packetQueue.clear();
-	}
+    void seek(uint64_t pos);
 
-        const uint64_t& clock() const
+    const uint64_t& clock() const
 	{
 		return m_clock;
 	}
 
 	int audioSampleRate() const
 	{
-		return m_DecodeData.sample_rate;
+		if (NULL == m_codecCtx)
+		{
+			return -1;
+		}
+		
+		return m_codecCtx->sample_rate;
 	}
 	int devSampleRate() const
 	{
-		return m_DevInfo.freq;
+		return m_devInfo.sample_rate;
 	}
 
 	void close();
 
 private:
-    size_t _cb(tagDecodeStatus& DecodeStatus, uint8_t*& lpBuff, int nBufSize);
+    size_t _cb(const uint8_t*& lpBuff, int nBufSize);
 
-    int32_t _decodePacket(bool& bQueedEmpty);
+    int32_t _decodePacket();
     int32_t _receiveFrame();
-	int32_t _convertFrame(AVFrame& frame);
 
-	void _clearData();
+	void _cleanup();
 };

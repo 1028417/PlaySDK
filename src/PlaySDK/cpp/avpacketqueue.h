@@ -8,9 +8,9 @@ public:
     AvPacketQueue() {}
 
 public:
-    size_t enqueue(AVPacket *packet);
+    size_t enqueue(AVPacket& packet);
 
-    bool dequeue(AVPacket& packet, bool isBlock);
+    bool dequeue(AVPacket& packet);
 
     bool isEmpty() const
     {
@@ -21,7 +21,6 @@ public:
 
 private:
     mutex m_mutex;
-    condition_variable m_condition;
 
     list<AVPacket> m_queue;
 };

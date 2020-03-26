@@ -229,7 +229,7 @@ bool CPlayer::Seek(UINT uPos)
     bool bRet = false;
     if (m_mutex.try_lock())
     {
-        if (__decoder.seek(uPos*__1e6))
+        if (__decoder.seek(uPos*AV_TIME_BASE))
         {
             if (__decoder.decodeStatus() == E_DecodeStatus::DS_Paused)
             {

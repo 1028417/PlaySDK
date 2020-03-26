@@ -3,6 +3,8 @@
 
 #include "decoder.h"
 
+#define __avioBuffSize 4096*8
+
 int Decoder::_readOpaque(void *opaque, uint8_t *buf, int size)
 {
     auto pDecoder = (Decoder*)opaque;
@@ -39,7 +41,7 @@ E_DecoderRetCode Decoder::_checkStream()
 
                 if (m_pFormatCtx->duration > 0)
 				{
-					m_duration = uint32_t(m_pFormatCtx->duration / __1e6);
+					m_duration = uint32_t(m_pFormatCtx->duration / AV_TIME_BASE);
                 }
 				else
                 {
@@ -57,11 +59,10 @@ E_DecoderRetCode Decoder::_checkStream()
 	return E_DecoderRetCode::DRC_NoAudioStream;
 }
 
-#define __avioBuffSize 32768
-
 E_DecoderRetCode Decoder::_open()
 {
-	if (NULL == (m_pFormatCtx = avformat_alloc_context()))
+    m_pFormatCtx = avformat_alloc_context();
+    if (NULL == m_pFormatCtx)
 	{
 		return E_DecoderRetCode::DRC_Fail;
 	}
@@ -76,21 +77,22 @@ E_DecoderRetCode Decoder::_open()
 		}
 	}
 	else
-	{
-		byte_p avioBuff = NULL;
-		if (NULL == (avioBuff = (byte_p)av_malloc(__avioBuffSize)))
+    {
+        auto avioBuff = (unsigned char*)av_malloc(__avioBuffSize);
+        if (NULL == avioBuff)
 		{
 			return E_DecoderRetCode::DRC_Fail;
-		}
-		if (NULL == (m_avio = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque)))
-		{
+        }
+		m_pFormatCtx->pb = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque);
+        if (NULL == m_pFormatCtx->pb)
+        {
+            av_free(avioBuff);
 			return E_DecoderRetCode::DRC_Fail;
 		}
-		m_pFormatCtx->pb = m_avio;
 		m_pFormatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 
 		AVInputFormat *pInFmt = NULL;
-		if (av_probe_input_buffer(m_avio, &pInFmt, NULL, NULL, 0, 0) < 0)
+		if (av_probe_input_buffer(m_pFormatCtx->pb, &pInFmt, NULL, NULL, 0, 0) < 0) // TODO
 		{
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
@@ -98,7 +100,7 @@ E_DecoderRetCode Decoder::_open()
 		int nRet = avformat_open_input(&m_pFormatCtx, NULL, pInFmt, NULL);
 		if (nRet != 0)
 		{
-			return E_DecoderRetCode::DRC_Fail;
+			return E_DecoderRetCode::DRC_OpenFail;
 		}
 	}
 
@@ -118,16 +120,16 @@ uint32_t Decoder::check()
 
 E_DecoderRetCode Decoder::open(bool bForce48KHz)
 {
-	m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
+    m_eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
     auto eRet = _open();
 	if (eRet != E_DecoderRetCode::DRC_Success)
     {
         _cleanup();
 
-		if (m_DecodeStatus.eDecodeStatus != E_DecodeStatus::DS_Cancel)
+        if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
 		{
-			m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Finished;
+            m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 		}
 
 		return eRet;
@@ -137,9 +139,9 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 	{
         _cleanup();
 
-		if (m_DecodeStatus.eDecodeStatus != E_DecodeStatus::DS_Cancel)
+        if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
 		{
-			m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Finished;
+            m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 		}
 
 		return E_DecoderRetCode::DRC_InitAudioDevFail;
@@ -150,9 +152,6 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 
 E_DecodeStatus Decoder::start(uint64_t uPos)
 {
-    auto& bReadFinished = m_DecodeStatus.bReadFinished;
-    bReadFinished = false;
-
 	if (uPos > 0)
 	{
 		m_seekPos = uPos;
@@ -162,47 +161,69 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 		m_seekPos = -1;
 	}
 
+	_start();
+
+	m_packetQueue.clear();
+
+	/* close audio device */
+	m_audioDecoder.close();
+
+	_cleanup();
+
+	return m_eDecodeStatus;
+}
+
+void Decoder::_start()
+{
+	bool bReadFinished = false;
+
 	AVPacket packet;
 	while (true)
 	{
-		if (E_DecodeStatus::DS_Paused == m_DecodeStatus.eDecodeStatus)
+        if (E_DecodeStatus::DS_Paused == m_eDecodeStatus)
 		{
             mtutil::usleep(50);
 			continue;
 		}
 		
-		if (E_DecodeStatus::DS_Decoding != m_DecodeStatus.eDecodeStatus)
+        if (E_DecodeStatus::DS_Decoding != m_eDecodeStatus)
 		{
-			break;
+			return;
 		}
 
-		/* this seek just use in playing music, while read finished
-		 * & have out of loop, then jump back to seek position */
 	seek:
 		if (m_seekPos>=0 && m_audioOpaque.seekable())
-		{
-            int64_t seekPos = av_rescale_q(m_seekPos, av_get_time_base_q(), m_pFormatCtx->streams[m_audioStreamIdx]->time_base);
-            if (av_seek_frame(m_pFormatCtx, m_audioStreamIdx, seekPos, AVSEEK_FLAG_BACKWARD) < 0)
+        {
+            //avformat_flush(m_pFormatCtx);
+
+            auto t_seekPos = av_rescale_q(m_seekPos, av_get_time_base_q()
+				, m_pFormatCtx->streams[m_audioStreamIdx]->time_base);
+            int nRet = av_seek_frame(m_pFormatCtx, m_audioStreamIdx, t_seekPos, AVSEEK_FLAG_BACKWARD); // seek到默认流指定位置之前最近的关键帧
+			//av_seek_frame(m_pFormatCtx, -1, m_seekPos, AVSEEK_FLAG_BACKWARD);
+            if (nRet < 0)
 			{
-				//QDebug() << "Seek failed.";
+                g_logger << "av_seek_frame fail: " >> nRet;
+				
                 if (bReadFinished)
 				{
+					m_seekPos = -1;
 					break;
-				}
-				else
-				{
-					continue;
-				}
-			}
+                }
+            }
+            else
+            {
+                if (m_pFormatCtx->pb)
+                {
+                    avio_flush(m_pFormatCtx->pb);
+                }
 
-            bReadFinished = false;
+                m_packetQueue.clear();
 
-			m_audioDecoder.seek(m_seekPos);
-			
-			m_seekPos = -1;
+                m_audioDecoder.seek(m_seekPos);
+            }
 		}
+		m_seekPos = -1;
 
-		/* judge haven't reall all frame */
 		int nRet = av_read_frame(m_pFormatCtx, &packet);
 		if (nRet < 0)
         {
@@ -211,18 +232,13 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 				g_logger << "av_read_frame fail: " >> nRet;
 			}
 			
-            /*if (m_seekPos >= 0)
-            {
-                continue;
-            }*/
-
-            bReadFinished = true;
+			bReadFinished = true;
             break;
 		}
 
         if (packet.stream_index == m_audioStreamIdx)
 		{
-			if (m_audioDecoder.packetEnqueue(packet) > 100)
+            if (m_packetQueue.enqueue(packet) > 100)
 			{
 				mtutil::usleep(30);
 			}
@@ -233,9 +249,13 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 		}
 	}
 
-	while (E_DecodeStatus::DS_Cancel != m_DecodeStatus.eDecodeStatus
-		&& E_DecodeStatus::DS_Finished != m_DecodeStatus.eDecodeStatus)
-    {
+	while (!m_packetQueue.isEmpty())
+	{
+        if (E_DecodeStatus::DS_Cancel == m_eDecodeStatus)
+		{
+			break;
+		}
+
         /* just use at audio playing */
 		if (m_seekPos>=0 && m_audioOpaque.seekable())
 		{
@@ -244,27 +264,18 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 
         mtutil::usleep(50);
 	}
-
-    /* close audio device */
-    m_audioDecoder.close();
-
-    bReadFinished = false;
-
-	_cleanup();
-
-	return m_DecodeStatus.eDecodeStatus;
 }
 
 void Decoder::cancel()
 {
-    m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
+    m_eDecodeStatus = E_DecodeStatus::DS_Cancel;
 }
 
 bool Decoder::pause()
 {
-    if (E_DecodeStatus::DS_Decoding == m_DecodeStatus.eDecodeStatus)// && isOpened())
+    if (E_DecodeStatus::DS_Decoding == m_eDecodeStatus)// && isOpened())
 	{
-		m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Paused;
+        m_eDecodeStatus = E_DecodeStatus::DS_Paused;
 
         m_audioDecoder.pause(true);
 
@@ -276,9 +287,9 @@ bool Decoder::pause()
 
 bool Decoder::resume()
 {
-	if (E_DecodeStatus::DS_Paused == m_DecodeStatus.eDecodeStatus)
+    if (E_DecodeStatus::DS_Paused == m_eDecodeStatus)
     {
-        m_DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Decoding;
+        m_eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
 		m_audioDecoder.pause(false);
 
@@ -310,16 +321,16 @@ void Decoder::_cleanup()
 {
     if (m_pFormatCtx)
 	{
+		if (m_pFormatCtx->pb)
+        {
+			av_freep(&m_pFormatCtx->pb->buffer);
+			avio_context_free(&m_pFormatCtx->pb);
+		}
+
+        //avformat_free_context(m_pFormatCtx);
+        //m_pFormatCtx = NULL;
 		avformat_close_input(&m_pFormatCtx);
-		avformat_free_context(m_pFormatCtx);
-		m_pFormatCtx = NULL;
-	}
-    if (m_avio)
-	{
-		av_freep(&m_avio->buffer);
-		avio_context_free(&m_avio);
-		m_avio = NULL;
-	}
+    }
 
     m_audioStreamIdx = -1;
 

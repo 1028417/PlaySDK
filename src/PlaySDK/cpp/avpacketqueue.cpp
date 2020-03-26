@@ -1,13 +1,11 @@
 
 #include "avpacketqueue.h"
 
-size_t AvPacketQueue::enqueue(AVPacket *packet)
+size_t AvPacketQueue::enqueue(AVPacket& packet)
 {
     m_mutex.lock();
 
-    m_queue.push_back(*packet);
-
-    m_condition.notify_one();
+    m_queue.push_back(packet);
 
     cauto size = m_queue.size();
 
@@ -16,27 +14,19 @@ size_t AvPacketQueue::enqueue(AVPacket *packet)
     return size;
 }
 
-bool AvPacketQueue::dequeue(AVPacket& packet, bool isBlock)
+bool AvPacketQueue::dequeue(AVPacket& packet)
 {
-	mutex_lock lock(m_mutex);
-    while (true)
+	m_mutex.lock();
+    if (!m_queue.empty())
 	{
-        if (!m_queue.empty())
-		{
-           packet = m_queue.front();
-            m_queue.pop_front();
+        packet = m_queue.front();
+        m_queue.pop_front();
 
-			return true;
-        }
-
-		if (!isBlock)
-		{
-            break;
-        }
-		
-        m_condition.wait(lock);
+		m_mutex.unlock();
+		return true;
     }
 
+	m_mutex.unlock();
 	return false;
 }
 

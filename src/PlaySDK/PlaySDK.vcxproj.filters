@@ -7,6 +7,7 @@
     <ClInclude Include="cpp\decoder.h" />
     <ClInclude Include="cpp\inc.h" />
     <ClInclude Include="cpp\SDLEngine.h" />
+    <ClInclude Include="cpp\resample.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cpp\avpacketqueue.cpp" />
@@ -14,5 +15,6 @@
     <ClCompile Include="cpp\Player.cpp" />
     <ClCompile Include="cpp\SDLEngine.cpp" />
     <ClCompile Include="cpp\audiodecoder.cpp" />
+    <ClCompile Include="cpp\resample.cpp" />
   </ItemGroup>
 </Project>

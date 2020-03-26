@@ -21,18 +21,19 @@ class Decoder
 public:
         Decoder(IAudioOpaque& AudioOpaque)
             : m_audioOpaque(AudioOpaque)
-            , m_audioDecoder(m_DecodeStatus)
+            , m_audioDecoder(m_packetQueue)
 	{
 	}
 	
 private:
         IAudioOpaque& m_audioOpaque;
 
-	tagDecodeStatus m_DecodeStatus;
+        AvPacketQueue m_packetQueue;
+
+        E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 
 	AudioDecoder m_audioDecoder;
 
-	AVIOContext *m_avio = NULL;
 	AVFormatContext *m_pFormatCtx = NULL;
 
         int m_audioStreamIdx = -1;
@@ -50,6 +51,8 @@ private:
 
 	E_DecoderRetCode _checkStream();
 
+	void _start();
+
 	void _cleanup();
 
 public:
@@ -60,7 +63,7 @@ public:
 
         const E_DecodeStatus& decodeStatus() const
 	{
-		return m_DecodeStatus.eDecodeStatus;
+        return m_eDecodeStatus;
 	}
 
         const uint64_t& getClock()
@@ -88,7 +91,7 @@ public:
 
         bool packetQueueEmpty() const
         {
-            return m_audioDecoder.packetQueueEmpty();
+            return m_packetQueue.isEmpty();
         }
 
         uint32_t check();
