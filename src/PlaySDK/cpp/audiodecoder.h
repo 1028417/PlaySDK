@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SLESEngine.h"
+#include "SLEngine.h"
 
 #include "SDLEngine.h"
 
@@ -57,7 +57,7 @@ private:
 	tagDecodeData m_DecodeData;
 
 #if __android
-    CSLESEngine
+    CSLEngine
 #else
     CSDLEngine
 #endif

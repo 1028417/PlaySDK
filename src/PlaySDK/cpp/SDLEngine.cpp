@@ -45,6 +45,13 @@ string CSDLEngine::getErrMsg()
 	return atoi(env);
 }*/
 
+static const map<SDL_AudioFormat, AVSampleFormat> g_mapSampleFormat {
+    {AUDIO_U8, AV_SAMPLE_FMT_U8}
+    , {AUDIO_S16, AV_SAMPLE_FMT_S16} // 16bit的flac、wav
+    , {AUDIO_S32SYS, AV_SAMPLE_FMT_S32} // 24bit的flac、wav
+    , {AUDIO_F32SYS, AV_SAMPLE_FMT_FLT} // mp3、ape、32bit浮点wav
+};
+
 bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 {
 	SDL_AudioSpec wantSpec;
@@ -53,17 +60,24 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 	wantSpec.channels = 2;// DevInfo.channels;// 2;
 
 	switch (DevInfo.sample_fmt)
-	{
-	case AV_SAMPLE_FMT_U8:
+    {
+    case AV_SAMPLE_FMT_U8:
+    case AV_SAMPLE_FMT_U8P:
+        DevInfo.sample_fmt = AV_SAMPLE_FMT_U8;
 		wantSpec.format = AUDIO_U8;
-		break;
-	case AV_SAMPLE_FMT_S16:
+        break;
+    case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S16P:
+        DevInfo.sample_fmt = AV_SAMPLE_FMT_S16;
 		wantSpec.format = AUDIO_S16SYS;
-		break;
-	case AV_SAMPLE_FMT_S32:
+        break;
+    case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_S32P:
+        DevInfo.sample_fmt = AV_SAMPLE_FMT_S32;
 		wantSpec.format = AUDIO_S32SYS;
 		break;
 	default:
+        DevInfo.sample_fmt = AV_SAMPLE_FMT_FLT;
 		wantSpec.format = AUDIO_F32SYS;
 	}
 
@@ -97,8 +111,12 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 				if (0 == nRet)
 				{
 					if (m_spec.format == wantSpec.format)
-					{
-						m_devId = 1;
+                    {
+                        DevInfo.channels = m_spec.channels;
+                        DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
+                        DevInfo.sample_rate = m_spec.freq;
+
+                        m_devId = 1;
 						return true;
 					}
 
@@ -127,28 +145,14 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 	{
 		m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_ANY_CHANGE);
 		if (m_devId <= 1)
-		{
-			return false;
-		}
+        {
+            return false;
+        }
+
+        DevInfo.channels = m_spec.channels;
+        DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
+        DevInfo.sample_rate = m_spec.freq;
 	}*/
-
-	DevInfo.channels = m_spec.channels;
-	DevInfo.sample_rate = m_spec.freq;
-
-	switch (m_spec.format)
-	{
-    case AUDIO_U8:
-		DevInfo.sample_fmt = AV_SAMPLE_FMT_U8;
-        break;
-    case AUDIO_S32SYS:
-		DevInfo.sample_fmt = AV_SAMPLE_FMT_S32; // 24bit的flac、wav
-		break;
-    case AUDIO_F32SYS:	
-		DevInfo.sample_fmt = AV_SAMPLE_FMT_FLT; // mp3、ape、32bit浮点wav
-		break;
-    default:
-		DevInfo.sample_fmt = AV_SAMPLE_FMT_S16; // 16bit的flac、wav
-    }
 
     //m_eStatus = E_SLDevStatus::Ready;
 	SDL_PauseAudioDevice(m_devId, 0);

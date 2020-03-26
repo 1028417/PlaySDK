@@ -116,7 +116,7 @@ int CPlayer::InitSDK()
 	g_logger >> "InitSDK";
 
 #if __android
-    return CSLESEngine::init();
+    return CSLEngine::init();
 #else
 	return CSDLEngine::init();
 #endif
@@ -128,7 +128,7 @@ void CPlayer::QuitSDK()
     m_logger.close();
 
 #if __android
-    CSLESEngine::quit();
+    CSLEngine::quit();
 #else
     CSDLEngine::quit();
 #endif
