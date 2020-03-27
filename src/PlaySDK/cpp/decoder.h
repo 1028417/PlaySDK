@@ -57,12 +57,7 @@ private:
 	void _cleanup();
 
 public:
-        bool isOpened() const
-        {
-            return m_audioStreamIdx >= 0;
-        }
-
-        const E_DecodeStatus& decodeStatus() const
+    const E_DecodeStatus& decodeStatus() const
 	{
         return m_eDecodeStatus;
 	}

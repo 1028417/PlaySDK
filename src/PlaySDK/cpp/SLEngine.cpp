@@ -214,21 +214,21 @@ bool CSLEngine::open(tagSLDevInfo& DevInfo)
     };
 
     auto& sample_rate = DevInfo.sample_rate;
-    if (sample_rate <= 44100)
+    /*if (sample_rate > 96000)
     {
-        sample_rate = 44100;
+        sample_rate = 192000;
     }
-    else if (sample_rate <= 48000)
-    {
-        sample_rate = 48000;
-    }
-    else if (sample_rate <= 96000)
+    else*/ if (sample_rate > 48000)
     {
         sample_rate = 96000;
     }
+    else if (sample_rate > 44100)
+    {
+        sample_rate = 48000;
+    }
     else
     {
-        sample_rate = 192000;
+        sample_rate = 44100;
     }
 
     m_pPlayer = &g_mapPlayer[sample_rate+bitsPerSample];

@@ -274,7 +274,7 @@ void Decoder::cancel()
 
 bool Decoder::pause()
 {
-    if (E_DecodeStatus::DS_Decoding == m_eDecodeStatus)// && isOpened())
+    if (E_DecodeStatus::DS_Decoding == m_eDecodeStatus)// && m_audioStreamIdx >= 0)
 	{
         m_eDecodeStatus = E_DecodeStatus::DS_Paused;
 
@@ -302,7 +302,7 @@ bool Decoder::resume()
 
 bool Decoder::seek(uint64_t pos)
 {
-    if (isOpened())
+    if (m_audioStreamIdx >= 0)
     {
         //if (-1 == m_seekPos)
         m_seekPos = pos;

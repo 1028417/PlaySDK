@@ -72,11 +72,6 @@ const E_DecodeStatus& CAudioOpaque::decodeStatus() const
 	return ((const Decoder*)m_pDecoder)->decodeStatus();
 }
 
-bool CAudioOpaque::decoderOpened() const
-{
-    return ((const Decoder*)m_pDecoder)->isOpened();
-}
-
 UINT CAudioOpaque::byteRate() const
 {
     return ((const Decoder*)m_pDecoder)->byteRate();
