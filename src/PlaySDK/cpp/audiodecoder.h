@@ -48,8 +48,9 @@ private:
 	
 	tagSLDevInfo m_devInfo;
 
-	double m_timeBase = 0;
 	int m_dstByteRate = 0;
+
+	double m_timeBase = 0;
 	uint64_t m_clock = 0;
 
     int64_t m_seekPos = -1;
@@ -80,15 +81,6 @@ public:
 		return m_clock;
 	}
 
-	int audioSampleRate() const
-	{
-		if (NULL == m_codecCtx)
-		{
-			return -1;
-		}
-		
-		return m_codecCtx->sample_rate;
-	}
 	int devSampleRate() const
 	{
 		return m_devInfo.sample_rate;

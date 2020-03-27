@@ -76,10 +76,6 @@ public:
             return m_byteRate;
     }
 
-	int audioSampleRate() const
-	{
-		return m_audioDecoder.audioSampleRate();
-	}
 	int devSampleRate() const
 	{
 		return m_audioDecoder.devSampleRate();

@@ -34,6 +34,10 @@ void AudioDecoder::_cleanup()
     //m_seekPos = -1;
 
     m_DecodeData.reset();
+
+	m_devInfo.channels = 0;
+	m_devInfo.sample_fmt = AV_SAMPLE_FMT_NONE;
+	m_devInfo.sample_rate = 0;
 }
 
 bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
@@ -112,7 +116,6 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
     m_dstByteRate = m_codecCtx->channels * m_devInfo.sample_rate * audioDstDepth;
 
 	m_timeBase = av_q2d(stream.time_base)*AV_TIME_BASE;
-
 	m_clock = 0;
     
     return true;

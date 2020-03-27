@@ -62,7 +62,7 @@ long long CAudioOpaque::open(const wstring& strFile)
     return m_nFileSize;
 }
 
-UINT CAudioOpaque::checkDuration()
+uint32_t CAudioOpaque::checkDuration()
 {
     return ((Decoder*)m_pDecoder)->check();
 }
@@ -70,11 +70,6 @@ UINT CAudioOpaque::checkDuration()
 const E_DecodeStatus& CAudioOpaque::decodeStatus() const
 {
 	return ((const Decoder*)m_pDecoder)->decodeStatus();
-}
-
-UINT CAudioOpaque::byteRate() const
-{
-    return ((const Decoder*)m_pDecoder)->byteRate();
 }
 
 int64_t CAudioOpaque::seek(int64_t offset, int origin)
@@ -104,6 +99,22 @@ bool CAudioOpaque::seekingFlag() const
 {
     return ((Decoder*)m_pDecoder)->seekingFlag();
 }
+
+uint32_t CAudioOpaque::duration() const
+{
+	return ((Decoder*)m_pDecoder)->duration();
+}
+
+uint64_t CAudioOpaque::clock() const
+{
+	return ((Decoder*)m_pDecoder)->getClock();
+}
+
+int CAudioOpaque::devSampleRate() const
+{
+	return ((Decoder*)m_pDecoder)->devSampleRate();
+}
+
 
 int CPlayer::InitSDK()
 {
@@ -176,25 +187,6 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
 	});
 	
     return true;
-}
-
-uint32_t CPlayer::GetDuration()
-{
-	return __decoder.duration();
-}
-
-uint64_t CPlayer::GetClock()
-{
-    return __decoder.getClock();
-}
-
-int CPlayer::audioSampleRate() const
-{
-	return __decoder.audioSampleRate();
-}
-int CPlayer::devSampleRate() const
-{
-	return __decoder.devSampleRate();
 }
 
 bool CPlayer::Pause()
