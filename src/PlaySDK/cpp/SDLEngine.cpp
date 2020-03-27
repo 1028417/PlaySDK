@@ -45,7 +45,7 @@ string CSDLEngine::getErrMsg()
 	return atoi(env);
 }*/
 
-static const map<SDL_AudioFormat, AVSampleFormat> g_mapSampleFormat {
+static map<SDL_AudioFormat, AVSampleFormat> g_mapSampleFormat {
     {AUDIO_U8, AV_SAMPLE_FMT_U8}
     , {AUDIO_S16, AV_SAMPLE_FMT_S16} // 16bit的flac、wav
     , {AUDIO_S32SYS, AV_SAMPLE_FMT_S32} // 24bit的flac、wav
@@ -57,7 +57,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 	SDL_AudioSpec wantSpec;
     memzero(wantSpec);
 
-	wantSpec.channels = 2;// DevInfo.channels;// 2;
+	wantSpec.channels = DevInfo.channels;// 2;
 
 	switch (DevInfo.sample_fmt)
     {
@@ -83,15 +83,24 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 
 	wantSpec.freq = DevInfo.sample_rate;
 
-    //wantSpec.samples = 4096;
-	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(DevInfo.sample_rate / __CALLBACK_PER_SEC));
-
-	//wantSpec.silence = 0;
-
+	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(DevInfo.sample_rate / __CALLBACK_PER_SEC)); //4096;
+	
     wantSpec.callback = _cb;
     wantSpec.userdata = this;
 
 	cauto fnOpen = [&](){
+		/*wantSpec.channels = 2;
+		m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+		if (m_devId > 1)
+		{
+			return true;
+		}
+		m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_ANY_CHANGE);
+		if (m_devId > 1)
+		{
+			return true;
+		}*/
+
 		int nextSampleRateIdx = FF_ARRAY_ELEMS(g_lpNextSampleRates) - 1;
 		while (nextSampleRateIdx >= 0 && g_lpNextSampleRates[nextSampleRateIdx] >= DevInfo.sample_rate)
 		{
@@ -112,10 +121,6 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 				{
 					if (m_spec.format == wantSpec.format)
                     {
-                        DevInfo.channels = m_spec.channels;
-                        DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
-                        DevInfo.sample_rate = m_spec.freq;
-
                         m_devId = 1;
 						return true;
 					}
@@ -140,19 +145,9 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 		return false;
 	}
 	
-	/*m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-	if (m_devId <= 1)
-	{
-		m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_ANY_CHANGE);
-		if (m_devId <= 1)
-        {
-            return false;
-        }
-
-        DevInfo.channels = m_spec.channels;
-        DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
-        DevInfo.sample_rate = m_spec.freq;
-	}*/
+	DevInfo.channels = m_spec.channels;
+	DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
+	DevInfo.sample_rate = m_spec.freq;
 
     //m_eStatus = E_SLDevStatus::Ready;
 	SDL_PauseAudioDevice(m_devId, 0);
