@@ -37,10 +37,9 @@ private:
 	AVFormatContext *m_pFormatCtx = NULL;
 	AVIOContext *m_pAvioCtx = NULL;
 
-        int m_audioStreamIdx = -1;
+	int m_audioStreamIdx = -1;
 
 	uint32_t m_duration = 0;
-	uint32_t m_byteRate = 0;
 
 	int64_t m_seekPos = -1;
 
@@ -71,11 +70,7 @@ public:
     {
             return m_duration;
     }
-    uint32_t byteRate() const
-    {
-            return m_byteRate;
-    }
-
+	
 	int devSampleRate() const
 	{
 		return m_audioDecoder.devSampleRate();
