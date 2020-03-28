@@ -61,7 +61,7 @@ bool CResample::init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo
 
 	if (m_swrCtx)
 	{
-        if (m_dst_channels == devInfo.channels && m_dst_sample_fmt == devInfo.sample_fmt && m_dst_sample_rate == devInfo.sample_rate
+        if (devInfo.channels == m_dst_channels && devInfo.sample_fmt == m_dst_sample_fmt && devInfo.sample_rate == m_dst_sample_rate
 			&& src_channel_layout == m_src_channel_layout && codecCtx.sample_fmt == m_src_sample_fmt && codecCtx.sample_rate == m_src_sample_rate)
 		{
 			return m_swrCtx;
@@ -91,7 +91,7 @@ int CResample::convert(const AVFrame& frame)
 	int sampleSize = swr_convert(ctx, m_out, m_out_count, in, frame.nb_samples);
 	if (sampleSize <= 0)
 	{
-		g_logger >> "swr_convert fail: " >> sampleSize;
+		g_logger << "swr_convert fail: " >> sampleSize;
 		return -1;
 	}
 
