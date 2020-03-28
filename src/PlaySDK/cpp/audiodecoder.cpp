@@ -28,16 +28,18 @@ void AudioDecoder::_cleanup()
         m_codecCtx = NULL;
     }
 
-    m_timeBase = 0;
-    m_dstByteRate = 0;
-    m_clock = 0;
-    //m_seekPos = -1;
-
-    m_DecodeData.reset();
-
 	m_devInfo.channels = 0;
 	m_devInfo.sample_fmt = AV_SAMPLE_FMT_NONE;
 	m_devInfo.sample_rate = 0;
+
+	m_dstByteRate = 0;
+
+    m_timeBase = 0;
+    m_clock = 0;
+    
+	m_seekPos = -1;
+
+    m_DecodeData.reset();
 }
 
 bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
@@ -150,23 +152,16 @@ size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
 
 	if (0 == m_DecodeData.audioBufSize)
 	{
+		m_DecodeData.audioBuf = nullptr;
         int32_t audioBufSize = _decodePacket();
-		if (audioBufSize < 0)
+		if (audioBufSize <= 0)
 		{
-			//DecodeStatus.eDecodeStatus = E_DecodeStatus::DS_Cancel;
             return 0;
 		}
-
-		if (0 == audioBufSize)
-		{
-			return 0;
-		}
-
 		m_DecodeData.audioBufSize = audioBufSize;
 	}
 
 	lpBuff = m_DecodeData.audioBuf;
-
 	int len = m_DecodeData.audioBufSize;
 	if (nBufSize > 0)
 	{
@@ -181,8 +176,6 @@ size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
 
 int32_t AudioDecoder::_decodePacket()
 {
-	m_DecodeData.audioBuf = nullptr;
-
 	AVPacket& packet = m_DecodeData.packet;
 	/* get new packet while last packet all has been resolved */
     if (m_DecodeData.sendReturn != __eagain)
@@ -237,6 +230,11 @@ int32_t AudioDecoder::_receiveFrame()
 
         g_logger << "avcodec_receive_frame fail: " >> nRet;
 		return nRet;
+	}
+
+	if (0 == frame->channels)
+	{
+		frame->channels = av_get_channel_layout_nb_channels(frame->channel_layout);
 	}
 
 	int32_t audioBufSize = 0;

@@ -4,14 +4,6 @@ struct tagSwrSrc
 {
 	tagSwrSrc() = default;
 
-	tagSwrSrc(const AVCodecContext& codecCtx)
-		: channels(codecCtx.channels)
-		, channel_layout(codecCtx.channel_layout)
-		, sample_fmt(codecCtx.sample_fmt)
-		, sample_rate(codecCtx.sample_rate)
-	{
-	}
-
 	tagSwrSrc(const AVFrame& frame)
 		: channels(frame.channels)
 		, channel_layout(frame.channel_layout)
@@ -44,9 +36,14 @@ public:
 private:
 	SwrContext *m_swrCtx = NULL;
 
-	tagSwrSrc m_src;
+	int64_t m_src_channel_layout = 0;
+	AVSampleFormat m_src_sample_fmt = AV_SAMPLE_FMT_NONE;
+	int m_src_sample_rate = 0;
 
-	tagSLDevInfo m_dst;
+	uint8_t m_dst_channels = 0;
+	int64_t m_dst_channel_layout = 0;
+	AVSampleFormat m_dst_sample_fmt = AV_SAMPLE_FMT_NONE;
+	int m_dst_sample_rate = 0;
 
 	int m_bytesPerSample = 0;
 	int m_out_count = 0;
@@ -61,8 +58,8 @@ private:
 		m_swrCtx = NULL;
 	}
 
-	SwrContext* _init(tagSwrSrc& src);
-
+	SwrContext* _init(int64_t src_channel_layout, AVSampleFormat src_sample_fmt, int src_sample_rate);
+	
 	SwrContext* _getCtx(const AVFrame& frame);
 
 public:

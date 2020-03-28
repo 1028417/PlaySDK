@@ -255,7 +255,6 @@ void Decoder::_start()
 			break;
 		}
 
-        /* just use at audio playing */
 		if (m_seekPos>=0 && m_audioOpaque.seekable())
 		{
 			goto seek;

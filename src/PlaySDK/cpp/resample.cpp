@@ -3,13 +3,12 @@
 
 #include "resample.h"
 
-inline SwrContext* CResample::_init(tagSwrSrc& src)
+inline SwrContext* CResample::_init(int64_t src_channel_layout, AVSampleFormat src_sample_fmt, int src_sample_rate)
 {
 	_free();
 
-	auto dstChannelLayout = av_get_default_channel_layout(m_dst.channels);
-	m_swrCtx = swr_alloc_set_opts(nullptr, dstChannelLayout, m_dst.sample_fmt
-		, m_dst.sample_rate, src.channel_layout, src.sample_fmt, src.sample_rate, 0, NULL);
+	m_swrCtx = swr_alloc_set_opts(nullptr, m_dst_channel_layout, m_dst_sample_fmt
+		, m_dst_sample_rate, src_channel_layout, src_sample_fmt, src_sample_rate, 0, NULL);
 	if (NULL == m_swrCtx)
 	{
 		return NULL;
@@ -21,54 +20,63 @@ inline SwrContext* CResample::_init(tagSwrSrc& src)
 		return NULL;
 	}
 
-	m_src = src;
+	m_src_channel_layout = src_channel_layout;
+	m_src_sample_fmt = src_sample_fmt;
+	m_src_sample_rate = src_sample_rate;
 
 	return m_swrCtx;
 }
 
-inline SwrContext* CResample::_getCtx(const AVFrame& frame)
+inline static int64_t _get_channel_layout(int channels, int64_t channel_layout)
 {
-	tagSwrSrc src(frame);
-	if (m_swrCtx)
+	if (channels > 0)
 	{
-		if (src.channels == m_src.channels && src.sample_fmt == m_src.sample_fmt && src.sample_rate == m_src.sample_rate)
+		if (0 == channel_layout || av_get_channel_layout_nb_channels(channel_layout) != channels)
 		{
-			if (src.channel_layout == m_src.channel_layout || src.genChannelLayout() == m_src.channel_layout)
-			{
-				return m_swrCtx;
-			}
+			return av_get_default_channel_layout(channels);
 		}
-		else
-		{
-			src.genChannelLayout();
-		}
-	}
-	else
-	{
-		src.genChannelLayout();
 	}
 
-	return _init(src);
+	return channel_layout;
 }
 
-bool CResample::init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo)
+inline SwrContext* CResample::_getCtx(const AVFrame& frame)
 {
+	auto src_channel_layout = _get_channel_layout(frame.channels, frame.channel_layout);
+
 	if (m_swrCtx)
 	{
-		if (0 == memcmp(&devInfo, &m_dst, sizeof(tagSLDevInfo))
-			&& codecCtx.channels == m_src.channels && codecCtx.sample_fmt == m_src.sample_fmt && codecCtx.sample_rate == m_src.sample_rate)
+		if (src_channel_layout == m_src_channel_layout && frame.format == m_src_sample_fmt && frame.sample_rate == m_src_sample_rate)
 		{
 			return m_swrCtx;
 		}
 	}
 
-	m_dst = devInfo;
-	m_bytesPerSample = av_get_bytes_per_sample(m_dst.sample_fmt) * m_dst.channels;
+	return _init(src_channel_layout, (AVSampleFormat)frame.format, frame.sample_rate);
+}
+
+bool CResample::init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo)
+{
+	auto src_channel_layout = _get_channel_layout(codecCtx.channels, codecCtx.channel_layout);
+
+	if (m_swrCtx)
+	{
+        if (m_dst_channels == devInfo.channels && m_dst_sample_fmt == devInfo.sample_fmt && m_dst_sample_rate == devInfo.sample_rate
+			&& src_channel_layout == m_src_channel_layout && codecCtx.sample_fmt == m_src_sample_fmt && codecCtx.sample_rate == m_src_sample_rate)
+		{
+			return m_swrCtx;
+		}
+	}
+
+	m_dst_channels = devInfo.channels;
+	m_dst_channel_layout = av_get_default_channel_layout(devInfo.channels);
+	m_dst_sample_fmt = devInfo.sample_fmt;
+	m_dst_sample_rate = devInfo.sample_rate;
+
+	m_bytesPerSample = av_get_bytes_per_sample(m_dst_sample_fmt) * m_dst_channels;
 	m_out_count = sizeof(m_buf) / m_bytesPerSample;
 
-	tagSwrSrc src(codecCtx);
-	src.genChannelLayout();
-	return NULL != _init(src);
+	return NULL != _init(src_channel_layout, codecCtx.sample_fmt, codecCtx.sample_rate);
 }
 
 int CResample::convert(const AVFrame& frame)
