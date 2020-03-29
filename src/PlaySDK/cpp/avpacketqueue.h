@@ -5,7 +5,7 @@
 class AvPacketQueue
 {
 public:
-    AvPacketQueue() {}
+    AvPacketQueue() = default;
 
 public:
     size_t enqueue(AVPacket& packet);
