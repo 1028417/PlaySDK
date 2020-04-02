@@ -10,48 +10,6 @@ static SLEngineItf g_engineIf = NULL;
 
 static map<SLuint32, CSLPlayer> g_mapPlayer;
 
-int CSLEngine::init()
-{
-    SLresult re = slCreateEngine(&g_engine,0,NULL,0,NULL,NULL);
-    if(re != SL_RESULT_SUCCESS)
-    {
-        //g_playsdkLogger << "slCreateEngine fail: " >> re;
-        return re;
-    }
-
-    re = (*g_engine)->Realize(g_engine,SL_BOOLEAN_FALSE);
-    if(re != SL_RESULT_SUCCESS)
-    {
-        //g_playsdkLogger << "RealizeEngine fail: " >> re;
-        return re;
-    }
-
-    re = (*g_engine)->GetInterface(g_engine,SL_IID_ENGINE,&g_engineIf);
-    if(re != SL_RESULT_SUCCESS)
-    {
-        //g_playsdkLogger << "GetInterface SL_IID_ENGINE fail: " >> re;
-        return re;
-    }
-
-    return 0;
-}
-
-void CSLEngine::quit()
-{
-    if (g_engine)
-    {
-        for (auto& pr : g_mapPlayer)
-        {
-            pr.second.destroy();
-        }
-        g_mapPlayer.clear();
-
-        (*g_engine)->Destroy(g_engine);
-        g_engine = NULL;
-        g_engineIf = NULL;
-    }
-}
-
 void CSLPlayer::destroy()
 {
     if (m_mix)
@@ -69,30 +27,6 @@ void CSLPlayer::destroy()
         m_bf = NULL;
         m_volumeIf = NULL;
     }
-}
-
-bool CSLPlayer::start(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPerSample)
-{
-    if (NULL == g_engine)
-    {
-        //g_playsdkLogger >> "engine not inited";
-        return false;
-    }
-
-    if (!_create(engine, samplesPerSec, bitsPerSample))
-    {
-        destroy();
-        return false;
-    }
-
-    //setVolume(m_volume);
-
-    //设置为播放状态
-    pause(false);
-
-    (*m_bf)->Enqueue(m_bf, "", 1);
-
-    return true;
 }
 
 static void _cb(SLAndroidSimpleBufferQueueItf bf, void *context)
@@ -189,6 +123,76 @@ bool CSLPlayer::_create(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bits
     //SL_IID_EFFECTSEND??
 
     return true;
+}
+
+bool CSLPlayer::start(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPerSample)
+{
+    if (NULL == g_engine)
+    {
+        //g_playsdkLogger >> "engine not inited";
+        return false;
+    }
+
+    if (!_create(engine, samplesPerSec, bitsPerSample))
+    {
+        destroy();
+        return false;
+    }
+
+    //设置为播放状态
+    pause(false);
+
+    (*m_bf)->Enqueue(m_bf, "", 1);
+
+    return true;
+}
+
+CSLEngine::CSLEngine(const CB_SLESStream& cb)
+    : m_cb(cb)
+    , m_pPlayer(&g_mapPlayer[44100+16])
+{
+}
+
+int CSLEngine::init()
+{
+    SLresult re = slCreateEngine(&g_engine,0,NULL,0,NULL,NULL);
+    if(re != SL_RESULT_SUCCESS)
+    {
+        //g_playsdkLogger << "slCreateEngine fail: " >> re;
+        return re;
+    }
+
+    re = (*g_engine)->Realize(g_engine,SL_BOOLEAN_FALSE);
+    if(re != SL_RESULT_SUCCESS)
+    {
+        //g_playsdkLogger << "RealizeEngine fail: " >> re;
+        return re;
+    }
+
+    re = (*g_engine)->GetInterface(g_engine,SL_IID_ENGINE,&g_engineIf);
+    if(re != SL_RESULT_SUCCESS)
+    {
+        //g_playsdkLogger << "GetInterface SL_IID_ENGINE fail: " >> re;
+        return re;
+    }
+
+    return 0;
+}
+
+void CSLEngine::quit()
+{
+    if (g_engine)
+    {
+        for (auto& pr : g_mapPlayer)
+        {
+            pr.second.destroy();
+        }
+        g_mapPlayer.clear();
+
+        (*g_engine)->Destroy(g_engine);
+        g_engine = NULL;
+        g_engineIf = NULL;
+    }
 }
 
 bool CSLEngine::open(tagSLDevInfo& DevInfo)
@@ -289,35 +293,23 @@ void CSLEngine::cb(SLAndroidSimpleBufferQueueItf& bf)
 
 void CSLEngine::pause(bool bPause)
 {
-    if (m_pPlayer)
-    {
-        m_pPlayer->pause(bPause);
-    }
+    m_pPlayer->pause(bPause);
 }
 
 void CSLEngine::setVolume(uint8_t volume)
 {
-    m_volume = MIN(volume, 100);
+    volume = MIN(volume, 100);
 
-    if (m_pPlayer)
-    {
-        m_pPlayer->setVolume(m_volume);
-    }
+    m_pPlayer->setVolume(volume);
 }
 
 void CSLEngine::clearbf()
 {
-    if (m_pPlayer)
-    {
-        m_pPlayer->clearbf();
-    }
+    m_pPlayer->clearbf();
 }
 
 void CSLEngine::close()
 {
-    if (m_pPlayer)
-    {
-        m_pPlayer->stop();
-    }
+    m_pPlayer->stop();
 }
 #endif

@@ -81,15 +81,10 @@ public:
 class CSLEngine : public IAudioDevEngine
 {
 public:
-    CSLEngine(const CB_SLESStream& cb)
-        : m_cb(cb)
-    {
-    }
+    CSLEngine(const CB_SLESStream& cb);
 
 private:
     CB_SLESStream m_cb;
-
-    uint8_t m_volume = 100;
 
     CSLPlayer *m_pPlayer = NULL;
 
