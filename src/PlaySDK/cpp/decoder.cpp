@@ -252,7 +252,7 @@ void Decoder::_start()
 	{
         if (E_DecodeStatus::DS_Cancel == m_eDecodeStatus)
 		{
-			break;
+            return;
 		}
 
 		if (m_seekPos>=0 && m_audioOpaque.seekable())
@@ -262,6 +262,8 @@ void Decoder::_start()
 
         mtutil::usleep(50);
 	}
+
+    m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 }
 
 void Decoder::cancel()
@@ -271,11 +273,18 @@ void Decoder::cancel()
 
 bool Decoder::pause()
 {
-    if (E_DecodeStatus::DS_Decoding == m_eDecodeStatus)// && m_audioStreamIdx >= 0)
-	{
-        m_eDecodeStatus = E_DecodeStatus::DS_Paused;
+    if (E_DecodeStatus::DS_Decoding == m_eDecodeStatus)
+    {
+        if (m_audioStreamIdx >= 0)
+        {
+            m_eDecodeStatus = E_DecodeStatus::DS_Paused;
 
-        m_audioDecoder.pause(true);
+            m_audioDecoder.pause(true);
+        }
+        else
+        {
+            cancel();
+        }
 
         return true;
 	}
