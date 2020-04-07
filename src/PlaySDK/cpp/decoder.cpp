@@ -297,7 +297,6 @@ bool Decoder::resume()
     if (E_DecodeStatus::DS_Paused == m_eDecodeStatus)
     {
         m_eDecodeStatus = E_DecodeStatus::DS_Decoding;
-
 		m_audioDecoder.pause(false);
 
         return true;
@@ -312,6 +311,14 @@ bool Decoder::seek(uint64_t pos)
     {
         //if (-1 == m_seekPos)
         m_seekPos = pos;
+
+        if (E_DecodeStatus::DS_Paused == m_eDecodeStatus)
+        {
+            m_packetQueue.clear();
+
+            m_eDecodeStatus = E_DecodeStatus::DS_Decoding;
+            m_audioDecoder.pause(false);
+        }
 
         return true;
     }
