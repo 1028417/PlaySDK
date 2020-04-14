@@ -81,7 +81,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 		wantSpec.format = AUDIO_F32SYS;
 	}
 
-	wantSpec.freq = DevInfo.sample_rate;
+	wantSpec.freq = DevInfo.sample_rate = MIN(192000, DevInfo.sample_rate);
 
 	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(DevInfo.sample_rate / __CALLBACK_PER_SEC)); //4096;
 	
