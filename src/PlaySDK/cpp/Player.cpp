@@ -118,7 +118,7 @@ int CAudioOpaque::devSampleRate() const
 
 int CPlayer::InitSDK()
 {
-	m_logger.open(L"playsdk.log", true);
+    m_logger.open("playsdk.log", true);
 	g_logger >> "InitSDK";
 
 #if __android
