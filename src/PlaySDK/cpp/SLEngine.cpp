@@ -299,7 +299,6 @@ void CSLEngine::pause(bool bPause)
 void CSLEngine::setVolume(uint8_t volume)
 {
     volume = MIN(volume, 100);
-
     m_pPlayer->setVolume(volume);
 }
 
