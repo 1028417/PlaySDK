@@ -27,7 +27,9 @@ void AudioDecoder::_cleanup()
         avcodec_free_context(&m_codecCtx);
         m_codecCtx = NULL;
     }
-
+	
+	m_sample_rate = 0;
+	
 	m_devInfo.channels = 0;
 	m_devInfo.sample_fmt = AV_SAMPLE_FMT_NONE;
 	m_devInfo.sample_rate = 0;
@@ -86,14 +88,14 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
 
 	m_devInfo.channels = m_codecCtx->channels;
 
-	m_devInfo.sample_rate = m_codecCtx->sample_rate;
+	m_devInfo.sample_fmt = m_codecCtx->sample_fmt;
+
+	m_devInfo.sample_rate = m_sample_rate = m_codecCtx->sample_rate;
 	if (bForce48KHz && m_devInfo.sample_rate < 48000)
 	{
 		m_devInfo.sample_rate = 48000;
 	}
-
-	m_devInfo.sample_fmt = m_codecCtx->sample_fmt;
-
+	
     if (!m_SLEngine.open(m_devInfo))
 	{
 		this->_cleanup();
@@ -241,8 +243,8 @@ int32_t AudioDecoder::_receiveFrame()
 	if (frame->channels == m_devInfo.channels && frame->format == m_devInfo.sample_fmt && frame->sample_rate == m_devInfo.sample_rate)
 	{
 		m_DecodeData.audioBuf = frame->data[0];
-		int *linesize = NULL; //frame->linesize;
-		audioBufSize = av_samples_get_buffer_size(linesize, frame->channels, frame->nb_samples, (AVSampleFormat)frame->format, 1);
+		//&frame->linesize;
+		audioBufSize = av_samples_get_buffer_size(NULL, frame->channels, frame->nb_samples, (AVSampleFormat)frame->format, 1);
 	}
 	else
 	{

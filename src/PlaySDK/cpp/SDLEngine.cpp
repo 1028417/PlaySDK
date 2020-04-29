@@ -11,6 +11,7 @@
 /*  soundtrack array use to adjust */
 static const uint8_t g_lpNextNbChannels[] { 0, 0, 1, 6, 2, 6, 4, 6 };
 static const int g_lpNextSampleRates[] { 44100, 48000, 96000, 192000 };
+// { 44100, 48000, 88200, 96000, 192000, 352800, 384000 };
 
 int CSDLEngine::init()
 {
@@ -81,57 +82,55 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 		wantSpec.format = AUDIO_F32SYS;
 	}
 
-	wantSpec.freq = DevInfo.sample_rate = MIN(192000, DevInfo.sample_rate);
-
+	//DevInfo.sample_rate = MIN(DevInfo.sample_rate, 96000);
+	wantSpec.freq = DevInfo.sample_rate;
 	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq/__CALLBACK_PER_SEC)); //4096;
 	
     wantSpec.callback = _cb;
     wantSpec.userdata = this;
-
+	
 	cauto fnOpen = [&](){
-		/*wantSpec.channels = 2;
-		m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-		if (m_devId > 1)
-		{
-			return true;
-		}
-		m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, SDL_AUDIO_ALLOW_ANY_CHANGE);
-		if (m_devId > 1)
+		/*auto t_wantSpec = wantSpec;
+		t_wantSpec.channels = 2;
+		m_devId = SDL_OpenAudioDevice(NULL, 0, &t_wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+		if (m_devId >= 2)
 		{
 			return true;
 		}*/
 
 		int nextSampleRateIdx = FF_ARRAY_ELEMS(g_lpNextSampleRates) - 1;
-		while (nextSampleRateIdx >= 0 && g_lpNextSampleRates[nextSampleRateIdx] >= DevInfo.sample_rate)
+		while (nextSampleRateIdx >= 0 && g_lpNextSampleRates[nextSampleRateIdx] >= wantSpec.freq)
 		{
 			nextSampleRateIdx--;
 		}
 
 		do {
 			int t_nextSampleRateIdx = nextSampleRateIdx;
-			for (wantSpec.freq = DevInfo.sample_rate; ; )
+			while (true)
 			{
-				m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, 0);// SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-				if (m_devId >= 2)
-				{
-					return true;
-				}
 				/*int nRet = SDL_OpenAudio(&wantSpec, &m_spec);
 				if (0 == nRet)
 				{
 					if (m_spec.format == wantSpec.format)
-                    {
-                        m_devId = 1;
+					{
+						m_devId = 1;
 						return true;
 					}
 
 					close();
 				}*/
 
+				m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, 0); //SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+				if (m_devId >= 2)
+				{
+					return true;
+				}
+
 				if (t_nextSampleRateIdx < 0)
 				{
 					break;
 				}
+
 				wantSpec.freq = g_lpNextSampleRates[t_nextSampleRateIdx--];
 				wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq/__CALLBACK_PER_SEC)); //4096;
 			}

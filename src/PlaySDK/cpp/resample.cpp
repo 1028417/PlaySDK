@@ -74,6 +74,11 @@ bool CResample::init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo
 	m_dst_sample_rate = devInfo.sample_rate;
 
 	m_bytesPerSample = av_get_bytes_per_sample(m_dst_sample_fmt) * m_dst_channels;
+	if (0 == m_bytesPerSample)
+	{
+		g_logger << "init resample fail, invalid dst_sample_fmt: " >> m_dst_sample_fmt;
+		return false;
+	}
 	m_out_count = sizeof(m_buf) / m_bytesPerSample;
 
 	return NULL != _init(src_channel_layout, codecCtx.sample_fmt, codecCtx.sample_rate);
@@ -88,14 +93,14 @@ int CResample::convert(const AVFrame& frame)
 	}
 	
 	auto in = (const uint8_t **)frame.extended_data;
-	int sampleSize = swr_convert(ctx, m_out, m_out_count, in, frame.nb_samples);
-	if (sampleSize <= 0)
+	int samples = swr_convert(ctx, m_out, m_out_count, in, frame.nb_samples);
+	if (samples <= 0)
 	{
-		g_logger << "swr_convert fail: " >> sampleSize;
+		g_logger << "swr_convert fail: " >> samples;
 		return -1;
 	}
 
-	if (sampleSize == m_out_count)
+	if (samples == m_out_count)
 	{
 		g_logger >> "swr audio buffer is probably too small";
 		if (swr_init(ctx) < 0)
@@ -105,5 +110,5 @@ int CResample::convert(const AVFrame& frame)
 		}
 	}
 
-	return sampleSize * m_bytesPerSample;
+	return samples * m_bytesPerSample;
 }

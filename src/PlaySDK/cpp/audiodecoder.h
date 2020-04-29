@@ -46,6 +46,8 @@ private:
 
 	AVCodecContext *m_codecCtx = NULL;
 	
+	int m_sample_rate = 0;
+
 	tagSLDevInfo m_devInfo;
 
 	int m_dstByteRate = 0;
@@ -81,9 +83,9 @@ public:
 		return m_clock;
 	}
 
-	int devSampleRate() const
+	int sampleRate() const
 	{
-		return m_devInfo.sample_rate;
+		return m_sample_rate;
 	}
 
 	void close();

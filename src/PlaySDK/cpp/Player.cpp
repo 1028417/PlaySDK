@@ -110,9 +110,9 @@ uint64_t CAudioOpaque::clock() const
 	return ((Decoder*)m_pDecoder)->getClock();
 }
 
-int CAudioOpaque::devSampleRate() const
+int CAudioOpaque::sampleRate() const
 {
-	return ((Decoder*)m_pDecoder)->devSampleRate();
+	return ((Decoder*)m_pDecoder)->sampleRate();
 }
 
 

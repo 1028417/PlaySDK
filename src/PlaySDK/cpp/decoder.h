@@ -71,9 +71,9 @@ public:
             return m_duration;
     }
 	
-	int devSampleRate() const
+	int sampleRate() const
 	{
-		return m_audioDecoder.devSampleRate();
+		return m_audioDecoder.sampleRate();
 	}
 
         bool packetQueueEmpty() const
