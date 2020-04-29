@@ -34,8 +34,8 @@ private:
 
 	AudioDecoder m_audioDecoder;
 
-	AVFormatContext *m_pFormatCtx = NULL;
-	AVIOContext *m_pAvioCtx = NULL;
+	AVFormatContext *m_fmtCtx = NULL;
+	AVIOContext *m_avioCtx = NULL;
 
 	int m_audioStreamIdx = -1;
 

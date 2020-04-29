@@ -29,19 +29,19 @@ int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
 
 E_DecoderRetCode Decoder::_checkStream()
 {
-	if (0 == avformat_find_stream_info(m_pFormatCtx, NULL))
+	if (0 == avformat_find_stream_info(m_fmtCtx, NULL))
 	{
-        for (UINT uIdx = 0; uIdx < m_pFormatCtx->nb_streams; uIdx++)
+        for (UINT uIdx = 0; uIdx < m_fmtCtx->nb_streams; uIdx++)
 		{
-            AVStream& stream = *m_pFormatCtx->streams[uIdx];
+            AVStream& stream = *m_fmtCtx->streams[uIdx];
             AVCodecParameters& codecpar = *stream.codecpar;
             if (AVMEDIA_TYPE_AUDIO == codecpar.codec_type)
             {
                 m_audioStreamIdx = uIdx;
 
-                if (m_pFormatCtx->duration > 0)
+                if (m_fmtCtx->duration > 0)
 				{
-					m_duration = uint32_t(m_pFormatCtx->duration / AV_TIME_BASE);
+					m_duration = uint32_t(m_fmtCtx->duration / AV_TIME_BASE);
                 }
 				else
                 {
@@ -59,8 +59,8 @@ E_DecoderRetCode Decoder::_checkStream()
 
 E_DecoderRetCode Decoder::_open()
 {
-    m_pFormatCtx = avformat_alloc_context();
-    if (NULL == m_pFormatCtx)
+    m_fmtCtx = avformat_alloc_context();
+    if (NULL == m_fmtCtx)
 	{
 		return E_DecoderRetCode::DRC_Fail;
 	}
@@ -68,7 +68,7 @@ E_DecoderRetCode Decoder::_open()
     cauto strFile = m_audioOpaque.localFilePath();
 	if (!strFile.empty())
 	{
-		int nRet = avformat_open_input(&m_pFormatCtx, strutil::toUtf8(strFile).c_str(), NULL, NULL);
+		int nRet = avformat_open_input(&m_fmtCtx, strutil::toUtf8(strFile).c_str(), NULL, NULL);
 		if (nRet != 0)
 		{
 			return E_DecoderRetCode::DRC_OpenFail;
@@ -81,22 +81,23 @@ E_DecoderRetCode Decoder::_open()
 		{
 			return E_DecoderRetCode::DRC_Fail;
         }
-		m_pAvioCtx = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque);
-        if (NULL == m_pAvioCtx)
+		m_avioCtx = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque);
+        if (NULL == m_avioCtx)
         {
             av_free(avioBuff);
 			return E_DecoderRetCode::DRC_Fail;
 		}
-		m_pFormatCtx->pb = m_pAvioCtx;
-		m_pFormatCtx->flags = AVFMT_FLAG_CUSTOM_IO;
-
+		
 		AVInputFormat *pInFmt = NULL;
-		if (av_probe_input_buffer(m_pFormatCtx->pb, &pInFmt, NULL, NULL, 0, 0) < 0) // TODO
+		if (av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0) < 0) // TODO
 		{
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
 
-		int nRet = avformat_open_input(&m_pFormatCtx, NULL, pInFmt, NULL);
+		m_fmtCtx->pb = m_avioCtx;
+		m_fmtCtx->flags = AVFMT_FLAG_CUSTOM_IO;
+
+		int nRet = avformat_open_input(&m_fmtCtx, NULL, pInFmt, NULL);
 		if (nRet != 0)
 		{
 			return E_DecoderRetCode::DRC_OpenFail;
@@ -134,7 +135,7 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 		return eRet;
 	}
 
-    if (!m_audioDecoder.open(*m_pFormatCtx->streams[m_audioStreamIdx], bForce48KHz))
+    if (!m_audioDecoder.open(*m_fmtCtx->streams[m_audioStreamIdx], bForce48KHz))
 	{
         _cleanup();
 
@@ -191,39 +192,44 @@ void Decoder::_start()
 		}
 
 	seek:
-		if (m_seekPos>=0 && m_audioOpaque.seekable())
-        {
-            //avformat_flush(m_pFormatCtx);
-
-            auto t_seekPos = av_rescale_q(m_seekPos, av_get_time_base_q()
-				, m_pFormatCtx->streams[m_audioStreamIdx]->time_base);
-            int nRet = av_seek_frame(m_pFormatCtx, m_audioStreamIdx, t_seekPos, AVSEEK_FLAG_BACKWARD); // seek到默认流指定位置之前最近的关键帧
-			//av_seek_frame(m_pFormatCtx, -1, m_seekPos, AVSEEK_FLAG_BACKWARD);
-            if (nRet < 0)
+		if (m_seekPos >= 0)
+		{
+			auto t_seekPos = m_seekPos;
+			m_seekPos = -1;
+			if (m_audioOpaque.seekable())
 			{
-                g_logger << "av_seek_frame fail: " >> nRet;
-				
-                if (bReadFinished)
+				//avformat_flush(m_pFormatCtx);
+
+				auto tbPos = av_rescale_q(t_seekPos, av_get_time_base_q()
+					, m_fmtCtx->streams[m_audioStreamIdx]->time_base);
+				int nRet = av_seek_frame(m_fmtCtx, m_audioStreamIdx, tbPos, AVSEEK_FLAG_BACKWARD); // seek到默认流指定位置之前最近的关键帧
+				//av_seek_frame(m_pFormatCtx, -1, t_seekPos, AVSEEK_FLAG_BACKWARD);
+				if (nRet < 0)
 				{
-					m_seekPos = -1;
-					break;
-                }
-            }
-            else
-            {
-                if (m_pFormatCtx->pb)
-                {
-                    avio_flush(m_pFormatCtx->pb);
-                }
+					g_logger << "av_seek_frame fail: " >> nRet;
 
-                m_packetQueue.clear();
+					if (bReadFinished)
+					{
+						break;
+					}
+				}
+				else
+				{
+					bReadFinished = false;
 
-                m_audioDecoder.seek(m_seekPos);
-            }
+					if (m_avioCtx)
+					{
+						avio_flush(m_avioCtx);
+					}
+
+					m_packetQueue.clear();
+
+					m_audioDecoder.seek(t_seekPos);
+				}
+			}
 		}
-		m_seekPos = -1;
 
-		int nRet = av_read_frame(m_pFormatCtx, &packet);
+		int nRet = av_read_frame(m_fmtCtx, &packet);
 		if (nRet < 0)
         {
 			if (AVERROR_EOF != nRet)
@@ -333,18 +339,18 @@ void Decoder::setVolume(uint8_t volume)
 
 void Decoder::_cleanup()
 {
-    if (m_pFormatCtx)
+    if (m_fmtCtx)
 	{
-		if (m_pAvioCtx)
+		if (m_avioCtx)
         {
-			av_freep(&m_pAvioCtx->buffer);
-			avio_context_free(&m_pAvioCtx);
-			m_pFormatCtx->pb = NULL;
+			av_freep(&m_avioCtx->buffer);
+			avio_context_free(&m_avioCtx);
+			m_fmtCtx->pb = NULL;
 		}
 
         //avformat_free_context(m_pFormatCtx);
         //m_pFormatCtx = NULL;
-		avformat_close_input(&m_pFormatCtx);
+		avformat_close_input(&m_fmtCtx);
     }
 
     m_audioStreamIdx = -1;
