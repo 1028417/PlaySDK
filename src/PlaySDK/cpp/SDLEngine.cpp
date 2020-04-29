@@ -63,27 +63,27 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
     {
     case AV_SAMPLE_FMT_U8:
     case AV_SAMPLE_FMT_U8P:
-        DevInfo.sample_fmt = AV_SAMPLE_FMT_U8;
+        //DevInfo.sample_fmt = AV_SAMPLE_FMT_U8;
 		wantSpec.format = AUDIO_U8;
         break;
     case AV_SAMPLE_FMT_S16:
     case AV_SAMPLE_FMT_S16P:
-        DevInfo.sample_fmt = AV_SAMPLE_FMT_S16;
+        //DevInfo.sample_fmt = AV_SAMPLE_FMT_S16;
 		wantSpec.format = AUDIO_S16SYS;
         break;
     case AV_SAMPLE_FMT_S32:
     case AV_SAMPLE_FMT_S32P:
-        DevInfo.sample_fmt = AV_SAMPLE_FMT_S32;
+        //DevInfo.sample_fmt = AV_SAMPLE_FMT_S32;
 		wantSpec.format = AUDIO_S32SYS;
 		break;
 	default:
-        DevInfo.sample_fmt = AV_SAMPLE_FMT_FLT;
+        //DevInfo.sample_fmt = AV_SAMPLE_FMT_FLT;
 		wantSpec.format = AUDIO_F32SYS;
 	}
 
 	wantSpec.freq = DevInfo.sample_rate = MIN(192000, DevInfo.sample_rate);
 
-	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(DevInfo.sample_rate / __CALLBACK_PER_SEC)); //4096;
+	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq/__CALLBACK_PER_SEC)); //4096;
 	
     wantSpec.callback = _cb;
     wantSpec.userdata = this;
@@ -133,6 +133,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 					break;
 				}
 				wantSpec.freq = g_lpNextSampleRates[t_nextSampleRateIdx--];
+				wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq/__CALLBACK_PER_SEC)); //4096;
 			}
 
 			wantSpec.channels = g_lpNextNbChannels[FFMIN(7, wantSpec.channels)];
