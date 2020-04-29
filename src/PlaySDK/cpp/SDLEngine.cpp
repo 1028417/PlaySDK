@@ -17,7 +17,7 @@ int CSDLEngine::init()
 {
     SDL_SetMainReady();
 
-    return SDL_Init(SDL_INIT_AUDIO);// | SDL_INIT_TIMER);
+    return SDL_Init(SDL_INIT_AUDIO); //| SDL_INIT_TIMER);
 }
 
 void CSDLEngine::quit()
@@ -58,27 +58,22 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 	SDL_AudioSpec wantSpec;
     memzero(wantSpec);
 
-	wantSpec.channels = DevInfo.channels;// 2;
+	wantSpec.channels = DevInfo.channels;
 
-	switch (DevInfo.sample_fmt)
-    {
+	switch (DevInfo.sample_fmt) {
     case AV_SAMPLE_FMT_U8:
     case AV_SAMPLE_FMT_U8P:
-        //DevInfo.sample_fmt = AV_SAMPLE_FMT_U8;
 		wantSpec.format = AUDIO_U8;
         break;
     case AV_SAMPLE_FMT_S16:
     case AV_SAMPLE_FMT_S16P:
-        //DevInfo.sample_fmt = AV_SAMPLE_FMT_S16;
 		wantSpec.format = AUDIO_S16SYS;
         break;
     case AV_SAMPLE_FMT_S32:
     case AV_SAMPLE_FMT_S32P:
-        //DevInfo.sample_fmt = AV_SAMPLE_FMT_S32;
 		wantSpec.format = AUDIO_S32SYS;
 		break;
 	default:
-        //DevInfo.sample_fmt = AV_SAMPLE_FMT_FLT;
 		wantSpec.format = AUDIO_F32SYS;
 	}
 
@@ -89,45 +84,37 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
     wantSpec.callback = _cb;
     wantSpec.userdata = this;
 	
-	cauto fnOpen = [&](){
+	cauto fnOpen = [&]() {
 		/*auto t_wantSpec = wantSpec;
 		t_wantSpec.channels = 2;
 		m_devId = SDL_OpenAudioDevice(NULL, 0, &t_wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-		if (m_devId >= 2)
-		{
+		if (m_devId >= 2) {
 			return true;
 		}*/
 
 		int nextSampleRateIdx = FF_ARRAY_ELEMS(g_lpNextSampleRates) - 1;
-		while (nextSampleRateIdx >= 0 && g_lpNextSampleRates[nextSampleRateIdx] >= wantSpec.freq)
-		{
+		while (nextSampleRateIdx >= 0 && g_lpNextSampleRates[nextSampleRateIdx] >= wantSpec.freq) {
 			nextSampleRateIdx--;
 		}
 
 		do {
 			int t_nextSampleRateIdx = nextSampleRateIdx;
-			while (true)
-			{
+			while (true) {
 				/*int nRet = SDL_OpenAudio(&wantSpec, &m_spec);
-				if (0 == nRet)
-				{
-					if (m_spec.format == wantSpec.format)
-					{
+				if (0 == nRet) {
+					if (m_spec.format == wantSpec.format) {
 						m_devId = 1;
 						return true;
 					}
-
 					close();
 				}*/
 
 				m_devId = SDL_OpenAudioDevice(NULL, 0, &wantSpec, &m_spec, 0); //SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-				if (m_devId >= 2)
-				{
+				if (m_devId >= 2) {
 					return true;
 				}
 
-				if (t_nextSampleRateIdx < 0)
-				{
+				if (t_nextSampleRateIdx < 0) {
 					break;
 				}
 
@@ -140,8 +127,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 		
 		return false;
 	};
-	if (!fnOpen())
-	{
+	if (!fnOpen()) {
 		return false;
 	}
 	
