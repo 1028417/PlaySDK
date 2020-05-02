@@ -7,7 +7,7 @@
 #include "../../../3rd/SDL2/include/SDL.h"
 #undef main
 
-using CB_SDLStream = function<size_t(const Uint8*& lpBuff, int nBufSize)>;
+using CB_SDLStream = function<size_t(const uint8_t*& lpBuff, int nBufSize)>;
 
 class CSDLEngine : public IAudioDevEngine
 {

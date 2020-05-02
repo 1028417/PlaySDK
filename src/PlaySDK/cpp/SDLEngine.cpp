@@ -148,7 +148,7 @@ inline void CSDLEngine::_cb(uint8_t *stream, int size)
 {
 	while (true)
 	{
-		const Uint8 *lpBuff = NULL;
+        const uint8_t *lpBuff = NULL;
 		size_t len = m_cb(lpBuff, size);
 
 		/*while (E_SLDevStatus::Pause == m_eStatus)
