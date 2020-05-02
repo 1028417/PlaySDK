@@ -94,7 +94,7 @@ private:
     size_t _cb(const uint8_t*& lpBuff, int nBufSize);
 
     int32_t _decodePacket();
-    int32_t _receiveFrame();
+    int32_t _recvFrame();
 
 	void _cleanup();
 };

@@ -203,7 +203,7 @@ int32_t AudioDecoder::_decodePacket()
 		}
 	}
 
-    int32_t nRet = _receiveFrame();
+    int32_t nRet = _recvFrame();
 
     if (m_DecodeData.sendReturn != __eagain)
 	{
@@ -213,7 +213,7 @@ int32_t AudioDecoder::_decodePacket()
 	return nRet;
 }
 
-int32_t AudioDecoder::_receiveFrame()
+int32_t AudioDecoder::_recvFrame()
 {
 	AVFrame *frame = av_frame_alloc();
 	if (NULL == frame)
