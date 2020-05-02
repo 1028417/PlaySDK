@@ -8,6 +8,9 @@
 /* Calculate actual buffer size keeping in mind not cause too frequent audio callbacks */
 #define __CALLBACK_PER_SEC 30
 
+#define __caleSamples(wantSpec) wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq / __CALLBACK_PER_SEC))
+// = 4096
+
 /*  soundtrack array use to adjust */
 static const uint8_t g_lpNextNbChannels[] { 0, 0, 1, 6, 2, 6, 4, 6 };
 static const int g_lpNextSampleRates[] { 44100, 48000, 96000, 192000 };
@@ -77,20 +80,20 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 		wantSpec.format = AUDIO_F32SYS;
 	}
 
-	//DevInfo.sample_rate = MIN(DevInfo.sample_rate, 96000);
+	//DevInfo.sample_rate = MIN(DevInfo.sample_rate, 96000); //DST降频
 	wantSpec.freq = DevInfo.sample_rate;
-	wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq/__CALLBACK_PER_SEC)); //4096;
-	
+	__caleSamples(wantSpec);
+
     wantSpec.callback = _cb;
     wantSpec.userdata = this;
 	
 	cauto fnOpen = [&]() {
-		/*auto t_wantSpec = wantSpec;
+		auto t_wantSpec = wantSpec;
 		t_wantSpec.channels = 2;
 		m_devId = SDL_OpenAudioDevice(NULL, 0, &t_wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
 		if (m_devId >= 2) {
 			return true;
-		}*/
+		}
 
 		int nextSampleRateIdx = FF_ARRAY_ELEMS(g_lpNextSampleRates) - 1;
 		while (nextSampleRateIdx >= 0 && g_lpNextSampleRates[nextSampleRateIdx] >= wantSpec.freq) {
@@ -119,7 +122,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 				}
 
 				wantSpec.freq = g_lpNextSampleRates[t_nextSampleRateIdx--];
-				wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq/__CALLBACK_PER_SEC)); //4096;
+				__caleSamples(wantSpec);
 			}
 
 			wantSpec.channels = g_lpNextNbChannels[FFMIN(7, wantSpec.channels)];

@@ -243,8 +243,8 @@ int32_t AudioDecoder::_receiveFrame()
 	if (frame->channels == m_devInfo.channels && frame->format == m_devInfo.sample_fmt && frame->sample_rate == m_devInfo.sample_rate)
 	{
 		m_DecodeData.audioBuf = frame->data[0];
-		//&frame->linesize;
-		audioBufSize = av_samples_get_buffer_size(NULL, frame->channels, frame->nb_samples, (AVSampleFormat)frame->format, 1);
+		audioBufSize = av_samples_get_buffer_size(NULL //frame->linesize
+			, frame->channels, frame->nb_samples, (AVSampleFormat)frame->format, 1);
 	}
 	else
 	{
