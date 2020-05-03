@@ -204,6 +204,7 @@ void CSDLEngine::clearbf()
 void CSDLEngine::close()
 {
     //m_eStatus = E_SLDevStatus::Close;
+    SDL_ClearQueuedAudio(m_devId);
 	SDL_CloseAudioDevice(m_devId);
 }
 #endif

@@ -40,7 +40,7 @@ void CAudioOpaque::close()
     m_nFileSize = -1;
 }
 
-long long CAudioOpaque::open(const wstring& strFile)
+long long CAudioOpaque::open(cwstr strFile)
 {
     m_pf = fsutil::fopen(strFile, "rb");
     if (NULL == m_pf)

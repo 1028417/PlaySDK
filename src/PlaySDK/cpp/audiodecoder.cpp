@@ -271,7 +271,6 @@ int32_t AudioDecoder::_recvFrame()
 
 void AudioDecoder::close()
 {
-    m_SLEngine.clearbf();
     m_SLEngine.close();
 
 	_cleanup();
