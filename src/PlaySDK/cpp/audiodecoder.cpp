@@ -28,11 +28,11 @@ void AudioDecoder::_cleanup()
         m_codecCtx = NULL;
     }
 	
-	m_sample_rate = 0;
-	
 	m_devInfo.channels = 0;
 	m_devInfo.sample_fmt = AV_SAMPLE_FMT_NONE;
 	m_devInfo.sample_rate = 0;
+	
+	m_sample_rate = 0;
 
 	m_dstByteRate = 0;
 

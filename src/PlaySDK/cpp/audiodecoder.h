@@ -16,17 +16,15 @@ struct tagDecodeData
 
 	void reset()
 	{
+		audioBuf = NULL;
+		audioBufSize = 0;
+
         if (__eagain == sendReturn)
         {
             av_packet_unref(&packet);
         }
 		sendReturn = 0;
-		
-		audioBuf = NULL;
-		audioBufSize = 0;
 	}
-
-	int sendReturn = 0;
 
 	AVPacket packet;
 
@@ -34,6 +32,8 @@ struct tagDecodeData
 	
 	const uint8_t *audioBuf = NULL;
 	uint32_t audioBufSize = 0;
+
+	int sendReturn = 0;
 };
 
 class AudioDecoder
@@ -45,10 +45,10 @@ private:
     AvPacketQueue& m_packetQueue;
 
 	AVCodecContext *m_codecCtx = NULL;
-	
-	int m_sample_rate = 0;
 
 	tagSLDevInfo m_devInfo;
+	
+	int m_sample_rate = 0;
 
 	int m_dstByteRate = 0;
 
