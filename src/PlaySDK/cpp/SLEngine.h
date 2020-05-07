@@ -71,6 +71,10 @@ public:
         {
             //m_eStatus = E_SLDevStatus::Close;
             (*m_playIf)->SetPlayState(m_playIf,SL_PLAYSTATE_STOPPED);
+            if (m_bf)
+            {
+                (*m_bf)->Clear(m_bf);
+            }
         }
     }
 
