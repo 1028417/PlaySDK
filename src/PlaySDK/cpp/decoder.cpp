@@ -7,8 +7,7 @@
 
 int Decoder::_readOpaque(void *opaque, uint8_t *buf, int size)
 {
-    auto pDecoder = (Decoder*)opaque;
-    if (!pDecoder->m_audioOpaque.read(buf, (UINT&)size))
+    if (!((IAudioOpaque*)opaque)->read(buf, (UINT&)size))
     {
         return AVERROR_EOF;
     }
@@ -18,13 +17,13 @@ int Decoder::_readOpaque(void *opaque, uint8_t *buf, int size)
 
 int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
 {
-    auto pDecoder = (Decoder*)opaque;
+    auto pAudioOpaque = (IAudioOpaque*)opaque;
 	if (AVSEEK_SIZE == whence)
     {
-        return pDecoder->m_audioOpaque.size(); //return -1; // 可直接返回-1
+        return pAudioOpaque->size(); //return -1; // 可直接返回-1
 	}
 
-    return pDecoder->m_audioOpaque.seek(offset, whence);
+    return pAudioOpaque->seek(offset, whence);
 }
 
 E_DecoderRetCode Decoder::_checkStream()
@@ -81,7 +80,7 @@ E_DecoderRetCode Decoder::_open()
 		{
 			return E_DecoderRetCode::DRC_Fail;
         }
-		m_avioCtx = avio_alloc_context(avioBuff, __avioBuffSize, 0, this, _readOpaque, NULL, _seekOpaque);
+        m_avioCtx = avio_alloc_context(avioBuff, __avioBuffSize, 0, &m_audioOpaque, _readOpaque, NULL, _seekOpaque);
         if (NULL == m_avioCtx)
         {
             av_free(avioBuff);
@@ -185,7 +184,6 @@ void Decoder::_start()
             mtutil::usleep(50);
 			continue;
 		}
-		
         if (E_DecodeStatus::DS_Decoding != m_eDecodeStatus)
 		{
 			return;

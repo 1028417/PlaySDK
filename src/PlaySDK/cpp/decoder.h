@@ -30,9 +30,9 @@ private:
 
         AvPacketQueue m_packetQueue;
 
-        E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Finished;
-
 	AudioDecoder m_audioDecoder;
+
+        E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 
 	AVFormatContext *m_fmtCtx = NULL;
 	AVIOContext *m_avioCtx = NULL;
