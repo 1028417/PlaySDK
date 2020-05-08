@@ -53,6 +53,7 @@ E_DecoderRetCode Decoder::_checkStream()
 		}
 	}
 
+    g_logger >> "_checkStream fail";
 	return E_DecoderRetCode::DRC_NoAudioStream;
 }
 
@@ -61,6 +62,7 @@ E_DecoderRetCode Decoder::_open()
     m_fmtCtx = avformat_alloc_context();
     if (NULL == m_fmtCtx)
 	{
+        g_logger >> "avformat_alloc_context fail";
 		return E_DecoderRetCode::DRC_Fail;
 	}
 
@@ -68,8 +70,9 @@ E_DecoderRetCode Decoder::_open()
 	if (!strFile.empty())
 	{
 		int nRet = avformat_open_input(&m_fmtCtx, strutil::toUtf8(strFile).c_str(), NULL, NULL);
-		if (nRet != 0)
-		{
+        if (nRet)
+        {
+            g_logger << "avformat_open_input fail: " >> nRet;
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
 	}
@@ -78,27 +81,32 @@ E_DecoderRetCode Decoder::_open()
         auto avioBuff = (unsigned char*)av_malloc(__avioBuffSize);
         if (NULL == avioBuff)
 		{
+            g_logger >> "av_malloc fail";
 			return E_DecoderRetCode::DRC_Fail;
         }
         m_avioCtx = avio_alloc_context(avioBuff, __avioBuffSize, 0, &m_audioOpaque, _readOpaque, NULL, _seekOpaque);
         if (NULL == m_avioCtx)
         {
+            g_logger >> "avio_alloc_context fail";
             av_free(avioBuff);
 			return E_DecoderRetCode::DRC_Fail;
 		}
 		
 		AVInputFormat *pInFmt = NULL;
-		if (av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0) < 0) // TODO
+        int nRet = av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); // TODO
+        if (nRet)
 		{
+            g_logger << "av_probe_input_buffer fail: " >> nRet;
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
 
 		m_fmtCtx->pb = m_avioCtx;
 		m_fmtCtx->flags = AVFMT_FLAG_CUSTOM_IO;
 
-		int nRet = avformat_open_input(&m_fmtCtx, NULL, pInFmt, NULL);
-		if (nRet != 0)
+        nRet = avformat_open_input(&m_fmtCtx, NULL, pInFmt, NULL);
+        if (nRet)
 		{
+            g_logger << "avformat_open_input fail: " >> nRet;
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
 	}

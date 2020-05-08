@@ -37,13 +37,13 @@ bool CSLPlayer::_create(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bits
     SLresult re = (*g_engineIf)->CreateOutputMix(g_engineIf,&m_mix,0,NULL,NULL); // mids,mreg);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "CreateOutputMix fail" >> re;
+        g_logger << "CreateOutputMix fail: " >> re;
         return false;
     }
     re = (*m_mix)->Realize(m_mix,SL_BOOLEAN_FALSE);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "Realize OutputMix fail" >> re;
+        g_logger << "Realize OutputMix fail: " >> re;
         return false;
     }
     /*SLEnvironmentalReverbItf envReverb = NULL;
@@ -76,13 +76,13 @@ bool CSLPlayer::_create(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bits
     re = (*g_engineIf)->CreateAudioPlayer(g_engineIf,&m_player,&src,&sink,sizeof(ids)/sizeof(SLInterfaceID),ids,req);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "CreateAudioPlayer fail" >> re;
+        g_logger << "CreateAudioPlayer fail: " >> re;
         return false;
     }
     re = (*m_player)->Realize(m_player,SL_BOOLEAN_FALSE);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "Realize Player fail" >> re;
+        g_logger << "Realize Player fail: " >> re;
         return false;
     }
 
@@ -90,27 +90,27 @@ bool CSLPlayer::_create(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bits
     re = (*m_player)->GetInterface(m_player,SL_IID_PLAY,&m_playIf);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "GetInterface SL_IID_PLAY fail" >> re;
+        g_logger << "GetInterface SL_IID_PLAY fail: " >> re;
         return false;
     }
 
     re = (*m_player)->GetInterface(m_player,SL_IID_BUFFERQUEUE,&m_bf);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
+        g_logger << "GetInterface SL_IID_BUFFERQUEUE fail: " >> re;
         return false;
     }
     re = (*m_bf)->RegisterCallback(m_bf, CSLEngine::_cb, engine);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "bf RegisterCallback fail" >> re;
+        g_logger << "bf RegisterCallback fail: " >> re;
         return false;
     }
 
     re = (*m_player)->GetInterface(m_player,SL_IID_VOLUME,&m_volumeIf);
     if(SL_RESULT_SUCCESS != re)
     {
-        //g_playsdkLogger << "GetInterface SL_IID_VOLUME fail" >> re;
+        g_logger << "GetInterface SL_IID_VOLUME fail: " >> re;
         return false;
     }
 
@@ -123,14 +123,17 @@ bool CSLPlayer::start(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPe
 {
     if (NULL == g_engine)
     {
-        //g_playsdkLogger >> "engine not inited";
+        g_logger >> "engine not inited";
         return false;
     }
 
-    if (!_create(engine, samplesPerSec, bitsPerSample))
+    if (!m_player)
     {
-        destroy();
-        return false;
+        if (!_create(engine, samplesPerSec, bitsPerSample))
+        {
+            destroy();
+            return false;
+        }
     }
 
     //设置为播放状态
@@ -141,7 +144,7 @@ bool CSLPlayer::start(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPe
     return true;
 }
 
-CSLEngine::CSLEngine(const CB_SLESStream& cb)
+CSLEngine::CSLEngine(const CB_SLStream& cb)
     : m_cb(cb)
     , m_pPlayer(&g_mapPlayer[44100+16])
 {
@@ -229,6 +232,8 @@ bool CSLEngine::open(tagSLDevInfo& DevInfo)
         sample_rate = 44100;
     }
 
+    m_bClosed = false;
+
     m_pPlayer = &g_mapPlayer[sample_rate+bitsPerSample];
     if (!m_pPlayer->start(this, sample_rate*1000, bitsPerSample))
     {
@@ -242,16 +247,19 @@ void CSLEngine::_cb(SLAndroidSimpleBufferQueueItf& bf)
 {
     m_mutex.lock();
 
-    const uint8_t *lpBuff = NULL;
-    size_t len = m_cb(lpBuff);
-    if (len > 0)
+    if (!m_bClosed)
     {
-        (*bf)->Enqueue(bf,lpBuff,len);
-    }
-    else
-    {
-        mtutil::usleep(30);
-        (*bf)->Enqueue(bf,"",1);
+        size_t uRetSize = 0;
+        auto lpBuff = m_cb(uRetSize);
+        if (lpBuff)
+        {
+            (*bf)->Enqueue(bf,lpBuff,uRetSize);
+        }
+        else
+        {
+            mtutil::usleep(30);
+            (*bf)->Enqueue(bf,"",1);
+        }
     }
 
     m_mutex.unlock();
@@ -276,7 +284,8 @@ void CSLEngine::clearbf()
 void CSLEngine::close()
 {
     m_mutex.lock();
-    m_pPlayer->stop();
+    m_bClosed = true;
     m_mutex.unlock();
+    m_pPlayer->stop();
 }
 #endif

@@ -11,11 +11,14 @@ inline SwrContext* CResample::_init(int64_t src_channel_layout, AVSampleFormat s
 		, m_dst_sample_rate, src_channel_layout, src_sample_fmt, src_sample_rate, 0, NULL);
 	if (NULL == m_swrCtx)
 	{
+        g_logger >> "swr_alloc_set_opts fail";
 		return NULL;
 	}
 
-	if (swr_init(m_swrCtx) < 0)
+    int nRet = swr_init(m_swrCtx);
+    if (nRet)
 	{
+        g_logger << "swr_init fail: " >> nRet;
 		_free();
 		return NULL;
 	}
@@ -64,7 +67,7 @@ bool CResample::init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo
         if (devInfo.channels == m_dst_channels && devInfo.sample_fmt == m_dst_sample_fmt && devInfo.sample_rate == m_dst_sample_rate
 			&& src_channel_layout == m_src_channel_layout && codecCtx.sample_fmt == m_src_sample_fmt && codecCtx.sample_rate == m_src_sample_rate)
 		{
-			return m_swrCtx;
+            return true;
 		}
 	}
 

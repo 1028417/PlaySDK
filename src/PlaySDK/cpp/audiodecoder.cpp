@@ -7,12 +7,12 @@ AudioDecoder::AudioDecoder(AvPacketQueue& packetQueue)
     : m_packetQueue(packetQueue)
     , m_SLEngine(
 #if __android
-    [&](const uint8_t*& lpBuff) {
-        return _cb(lpBuff, 0);
+    [&](size_t& uRetSize) {
+        return _cb(0, uRetSize);
 	}
 #else
-    [&](const uint8_t*& lpBuff, int size) {
-        return _cb(lpBuff, size);
+    [&](size_t uBuffSize, size_t& uRetSize) {
+        return _cb(uBuffSize, uRetSize);
 	}
 #endif
 )
@@ -48,30 +48,42 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
 	m_codecCtx = avcodec_alloc_context3(NULL);
 	if (NULL == m_codecCtx)
 	{
+        g_logger >> "avcodec_alloc_context3 fail";
         return false;
 	}
 
 	bool bRet = false;
 	do {
 		stream.discard = AVDISCARD_DEFAULT;
-		if (avcodec_parameters_to_context(m_codecCtx, stream.codecpar) < 0)
+        int nRet = avcodec_parameters_to_context(m_codecCtx, stream.codecpar);
+        if (nRet)
 		{
+            g_logger << "avcodec_parameters_to_context fail: " >> nRet;
 			break;
 		}
 
-		if (m_codecCtx->channels <= 0 || m_codecCtx->sample_rate <= 0)
+        if (m_codecCtx->channels <= 0)
+        {
+            g_logger >> "channels invalid";
+            break;
+        }
+        if (m_codecCtx->sample_rate <= 0)
 		{
+            g_logger >> "sample_rate invalid";
 			break;
 		}
 
 		AVCodec *codec = avcodec_find_decoder(m_codecCtx->codec_id);
 		if (NULL == codec)
 		{
+            g_logger >> "avcodec_find_decoder fail";
 			break;
 		}
 
-		if (avcodec_open2(m_codecCtx, codec, NULL) < 0)
+        nRet = avcodec_open2(m_codecCtx, codec, NULL);
+        if (nRet)
 		{
+            g_logger << "avcodec_open2 fail: " >> nRet;
 			break;
 		}
 
@@ -131,10 +143,9 @@ void AudioDecoder::pause(bool bPause)
 void AudioDecoder::seek(uint64_t pos)
 {
     m_seekPos = pos;
-    //mtutil::usleep(30);
 }
 
-size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
+const uint8_t* AudioDecoder::_cb(size_t uBufSize, size_t& uRetSize)
 {
     if (m_seekPos != -1)
     {
@@ -147,7 +158,7 @@ size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
         m_clock = m_seekPos;
         m_seekPos = -1;
 
-        return 0;
+        return NULL;
     }
 
 	if (0 == m_DecodeData.audioBufSize)
@@ -155,23 +166,26 @@ size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
         int32_t audioBufSize = _decodePacket();
 		if (audioBufSize <= 0)
 		{
-            return 0;
+            return NULL;
 		}
 		m_DecodeData.audioBufSize = audioBufSize;
 	}
 
-	lpBuff = m_DecodeData.audioBuf;
+	auto lpBuff = m_DecodeData.audioBuf;
 
-	int len = m_DecodeData.audioBufSize;
-	if (nBufSize > 0)
+	if (0 == uBufSize || uBufSize >= m_DecodeData.audioBufSize)
 	{
-        len = MIN(len, nBufSize);
+		uRetSize = m_DecodeData.audioBufSize;
+		m_DecodeData.audioBufSize = 0;
+	}
+	else
+	{
+		uRetSize = uBufSize;
+		m_DecodeData.audioBufSize -= uBufSize;
+		m_DecodeData.audioBuf += uBufSize;
 	}
 
-	m_DecodeData.audioBuf += len;
-	m_DecodeData.audioBufSize -= len;
-
-	return len;
+	return lpBuff;
 }
 
 int32_t AudioDecoder::_decodePacket()
@@ -183,11 +197,6 @@ int32_t AudioDecoder::_decodePacket()
         int nRet = m_packetQueue.dequeue(packet);
         if (-1 == nRet)
         {
-			if (nRet < 30)
-			{
-				mtutil::usleep(30);
-			}
-
             return 0;
         }
 	}

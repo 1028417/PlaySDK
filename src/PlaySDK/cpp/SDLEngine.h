@@ -7,7 +7,7 @@
 #include "../../../3rd/SDL2/include/SDL.h"
 #undef main
 
-using CB_SDLStream = function<size_t(const uint8_t*& lpBuff, int nBufSize)>;
+using CB_SDLStream = function<const uint8_t*(size_t uBufSize, size_t& uRetSize)>;
 
 class CSDLEngine : public IAudioDevEngine
 {
@@ -48,7 +48,7 @@ public:
     void close() override;
 
 private:
-    static void SDLCALL _cb(void *userdata, uint8_t *stream, int size);
+    static void SDLCALL _cb(void *userdata, uint8_t *stream, int len);
     void _cb(uint8_t *stream, int size);
 };
 #endif

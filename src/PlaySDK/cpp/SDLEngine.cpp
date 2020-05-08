@@ -144,50 +144,36 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 	return true;
 }
 
-inline void CSDLEngine::_cb(uint8_t *stream, int size)
+inline void CSDLEngine::_cb(uint8_t *stream, int len)
 {
+	SDL_memset(stream, 0, len);
+
 	while (true)
 	{
-        const uint8_t *lpBuff = NULL;
-		size_t len = m_cb(lpBuff, size);
-
-		/*while (E_SLDevStatus::Pause == m_eStatus)
-		{
-		mtutil::usleep(50);
-		}
-		if (E_SLDevStatus::Close == m_eStatus)
-		{
-		return;
-		}*/
-
-		if (0 == len)
+		size_t uRetSize = 0;
+		auto lpBuff = m_cb(len, uRetSize);
+		if (NULL == lpBuff)
 		{
 			mtutil::usleep(50);
-
-			//len = m_cb(lpBuff, size);
-			//if (0 == len)
-			//{
 			break;
-			//}
 		}
 
 		//SDL_MixAudio(stream, lpBuff, len, SDL_MIX_MAXVOLUME * m_volume / 100);
-		SDL_MixAudioFormat(stream, lpBuff, m_spec.format, len, SDL_MIX_MAXVOLUME * m_volume / 100);
+		SDL_MixAudioFormat(stream, lpBuff, m_spec.format, uRetSize, SDL_MIX_MAXVOLUME * m_volume / 100);
 
-		size -= len;
-		if (size <= 0)
+		len -= uRetSize;
+		if (len <= 0)
 		{
 			break;
 		}
-		stream += len;
+		stream += uRetSize;
 	}
 }
 
-void SDLCALL CSDLEngine::_cb(void *userdata, uint8_t *stream, int size)
+void SDLCALL CSDLEngine::_cb(void *userdata, uint8_t *stream, int len)
 {
-	SDL_memset(stream, 0, size);
 	CSDLEngine *engine = (CSDLEngine*)userdata;
-	engine->_cb(stream, size);
+	engine->_cb(stream, len);
 }
 
 void CSDLEngine::pause(bool bPause)

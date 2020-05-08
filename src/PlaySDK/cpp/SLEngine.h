@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "inc.h"
 
@@ -6,7 +6,7 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
-using CB_SLESStream = std::function<size_t(const uint8_t*& lpBuff)>;
+using CB_SLStream = std::function<const uint8_t*(size_t& uRetSize)>;
 
 class CSLPlayer
 {
@@ -25,11 +25,6 @@ private:
     bool _create(class CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPerSample);
 
 public:
-    operator bool() const
-    {
-        return m_player;
-    }
-
     bool start(class CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPerSample);
 
     void pause(bool bPause)
@@ -85,14 +80,15 @@ class CSLEngine : public IAudioDevEngine
 {
 friend CSLPlayer;
 public:
-    CSLEngine(const CB_SLESStream& cb);
+    CSLEngine(const CB_SLStream& cb);
 
 private:
-    CB_SLESStream m_cb;
+    CB_SLStream m_cb;
 
     CSLPlayer *m_pPlayer = NULL;
 
     mutex m_mutex;
+    bool m_bClosed = false;
 
 private:
     static void _cb(SLAndroidSimpleBufferQueueItf bf, void *context)

@@ -31,7 +31,7 @@ struct tagDecodeData
 	CResample swr;
 	
 	const uint8_t *audioBuf = NULL;
-	uint32_t audioBufSize = 0;
+	size_t audioBufSize = 0;
 
 	int sendReturn = 0;
 };
@@ -91,7 +91,7 @@ public:
 	void close();
 
 private:
-    size_t _cb(const uint8_t*& lpBuff, int nBufSize);
+     const uint8_t* _cb(size_t uBufSize, size_t& uRetSize);
 
     int32_t _decodePacket();
     int32_t _recvFrame();
