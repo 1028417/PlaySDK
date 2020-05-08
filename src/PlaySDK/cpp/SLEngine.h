@@ -92,6 +92,8 @@ private:
 
     CSLPlayer *m_pPlayer = NULL;
 
+    bool m_bStatus = false;
+
 public:
     static int init();
     static void quit();

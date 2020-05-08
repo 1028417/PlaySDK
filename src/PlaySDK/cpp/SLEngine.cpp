@@ -244,31 +244,6 @@ bool CSLEngine::open(tagSLDevInfo& DevInfo)
     return true;
 }
 
-/*inline void CSLEngine::_cb()
-{
-    while (true) {
-        const uint8_t *lpBuff = NULL;
-        size_t len = m_cb(lpBuff);
-
-        while (E_SLDevStatus::Pause == m_eStatus)
-        {
-            mtutil::usleep(50);
-        }
-        if (E_SLDevStatus::Close == m_eStatus)
-        {
-            return;
-        }
-
-        if (len > 0)
-        {
-            (*m_bf)->Enqueue(m_bf,lpBuff,len);
-            break;
-        }
-
-        mtutil::usleep(50);
-    }
-}*/
-
 void CSLEngine::cb(SLAndroidSimpleBufferQueueItf& bf)
 {
     const uint8_t *lpBuff = NULL;
@@ -281,12 +256,17 @@ void CSLEngine::cb(SLAndroidSimpleBufferQueueItf& bf)
 
     mtutil::usleep(50);
 
-    /*len = m_cb(lpBuff);
+    len = m_cb(lpBuff);
     if (len > 0)
     {
         (*bf)->Enqueue(bf,lpBuff,len);
         return;
-    }*/
+    }
+
+    if (!m_bStatus)
+    {
+        return;
+    }
 
     (*bf)->Enqueue(bf,"",1);
 }
@@ -309,6 +289,8 @@ void CSLEngine::clearbf()
 
 void CSLEngine::close()
 {
+    m_bStatus = false;
+
     m_pPlayer->stop();
 }
 #endif
