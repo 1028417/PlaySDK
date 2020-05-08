@@ -81,9 +81,9 @@ public:
     void destroy();
 };
 
-//1 创建引擎
 class CSLEngine : public IAudioDevEngine
 {
+friend CSLPlayer;
 public:
     CSLEngine(const CB_SLESStream& cb);
 
@@ -92,15 +92,21 @@ private:
 
     CSLPlayer *m_pPlayer = NULL;
 
-    bool m_bStatus = false;
+    mutex m_mutex;
+
+private:
+    static void _cb(SLAndroidSimpleBufferQueueItf bf, void *context)
+    {
+        ((CSLEngine*)context)->_cb(bf);
+    }
+
+    void _cb(SLAndroidSimpleBufferQueueItf& bf);
 
 public:
     static int init();
     static void quit();
 
     bool open(tagSLDevInfo& DevInfo) override;
-
-    void cb(SLAndroidSimpleBufferQueueItf& bf);
 
     void pause(bool bPause) override;
 

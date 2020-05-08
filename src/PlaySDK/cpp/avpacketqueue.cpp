@@ -14,20 +14,19 @@ size_t AvPacketQueue::enqueue(AVPacket& packet)
     return size;
 }
 
-bool AvPacketQueue::dequeue(AVPacket& packet)
+int AvPacketQueue::dequeue(AVPacket& packet)
 {
 	m_mutex.lock();
-    if (!m_queue.empty())
+    int nCount = m_queue.size();
+    if (nCount > 0)
 	{
         packet = m_queue.front();
         m_queue.pop_front();
-
-		m_mutex.unlock();
-		return true;
     }
-
+    nCount--;
 	m_mutex.unlock();
-	return false;
+
+    return nCount;
 }
 
 void AvPacketQueue::clear()

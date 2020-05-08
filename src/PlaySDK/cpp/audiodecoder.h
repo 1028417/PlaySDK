@@ -16,7 +16,7 @@ struct tagDecodeData
 
 	void reset()
 	{
-		audioBuf = NULL;
+		//audioBuf = NULL;
 		audioBufSize = 0;
 
         if (__eagain == sendReturn)

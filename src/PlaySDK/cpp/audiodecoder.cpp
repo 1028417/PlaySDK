@@ -25,7 +25,6 @@ void AudioDecoder::_cleanup()
     {
         avcodec_close(m_codecCtx);
         avcodec_free_context(&m_codecCtx);
-        m_codecCtx = NULL;
     }
 	
 	m_devInfo.channels = 0;
@@ -81,8 +80,7 @@ bool AudioDecoder::open(AVStream& stream, bool bForce48KHz)
 
 	if (!bRet)
 	{
-		avcodec_free_context(&m_codecCtx);
-		m_codecCtx = NULL;
+        avcodec_free_context(&m_codecCtx);
         return false;
     }
 
@@ -133,7 +131,7 @@ void AudioDecoder::pause(bool bPause)
 void AudioDecoder::seek(uint64_t pos)
 {
     m_seekPos = pos;
-    mtutil::usleep(50);
+    //mtutil::usleep(30);
 }
 
 size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
@@ -154,7 +152,6 @@ size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
 
 	if (0 == m_DecodeData.audioBufSize)
 	{
-		m_DecodeData.audioBuf = nullptr;
         int32_t audioBufSize = _decodePacket();
 		if (audioBufSize <= 0)
 		{
@@ -164,6 +161,7 @@ size_t AudioDecoder::_cb(const uint8_t*& lpBuff, int nBufSize)
 	}
 
 	lpBuff = m_DecodeData.audioBuf;
+
 	int len = m_DecodeData.audioBufSize;
 	if (nBufSize > 0)
 	{
@@ -181,11 +179,17 @@ int32_t AudioDecoder::_decodePacket()
 	AVPacket& packet = m_DecodeData.packet;
 	/* get new packet while last packet all has been resolved */
     if (m_DecodeData.sendReturn != __eagain)
-	{
-		if (!m_packetQueue.dequeue(packet))
-		{
-			return 0;
-		}
+    {
+        int nRet = m_packetQueue.dequeue(packet);
+        if (-1 == nRet)
+        {
+			if (nRet < 30)
+			{
+				mtutil::usleep(30);
+			}
+
+            return 0;
+        }
 	}
 	
 	/* while return -11 means packet have data not resolved, this packet cannot be unref */

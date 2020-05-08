@@ -162,9 +162,6 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 
 	_start();
 
-	m_packetQueue.clear();
-
-	/* close audio device */
 	m_audioDecoder.close();
 
 	_cleanup();
@@ -177,19 +174,20 @@ void Decoder::_start()
 	bool bReadFinished = false;
 
 	AVPacket packet;
-	while (true)
-	{
+    while (true)
+    {
+        if (E_DecodeStatus::DS_Cancel == m_eDecodeStatus)
+        {
+            m_packetQueue.clear();
+            break;
+        }
+
         if (E_DecodeStatus::DS_Paused == m_eDecodeStatus)
 		{
             mtutil::usleep(50);
 			continue;
-		}
-        if (E_DecodeStatus::DS_Decoding != m_eDecodeStatus)
-		{
-			return;
-		}
+        }
 
-	seek:
 		if (m_seekPos >= 0)
 		{
 			auto t_seekPos = m_seekPos;
@@ -206,26 +204,38 @@ void Decoder::_start()
 				{
 					g_logger << "av_seek_frame fail: " >> nRet;
 
-					if (bReadFinished)
-					{
-						break;
-					}
+//					if (bReadFinished)
+//					{
+//						continue;
+//					}
 				}
 				else
 				{
 					bReadFinished = false;
 
-					if (m_avioCtx)
-					{
-						avio_flush(m_avioCtx);
-					}
-
 					m_packetQueue.clear();
 
 					m_audioDecoder.seek(t_seekPos);
+
+                    if (m_avioCtx)
+                    {
+                        avio_flush(m_avioCtx);
+                    }
 				}
 			}
 		}
+
+        if (bReadFinished)
+        {
+            if (m_packetQueue.isEmpty())
+            {
+                m_eDecodeStatus = E_DecodeStatus::DS_Finished;
+                break;
+            }
+
+            mtutil::usleep(50);
+            continue;
+        }
 
 		int nRet = av_read_frame(m_fmtCtx, &packet);
 		if (nRet < 0)
@@ -236,12 +246,12 @@ void Decoder::_start()
 			}
 			
 			bReadFinished = true;
-            break;
+            continue;
 		}
 
         if (packet.stream_index == m_audioStreamIdx)
 		{
-            if (m_packetQueue.enqueue(packet) > 100)
+            if (m_packetQueue.enqueue(packet) > 300)
 			{
 				mtutil::usleep(30);
 			}
@@ -250,24 +260,7 @@ void Decoder::_start()
 		{
 			av_packet_unref(&packet);
 		}
-	}
-
-	while (!m_packetQueue.isEmpty())
-	{
-        if (E_DecodeStatus::DS_Cancel == m_eDecodeStatus)
-		{
-            return;
-		}
-
-		if (m_seekPos>=0 && m_audioOpaque.seekable())
-		{
-			goto seek;
-		}
-
-        mtutil::usleep(50);
-	}
-
-    m_eDecodeStatus = E_DecodeStatus::DS_Finished;
+    }
 }
 
 void Decoder::cancel()
@@ -337,17 +330,15 @@ void Decoder::setVolume(uint8_t volume)
 
 void Decoder::_cleanup()
 {
+    if (m_avioCtx)
+    {
+        av_freep(&m_avioCtx->buffer);
+        avio_context_free(&m_avioCtx);
+        m_fmtCtx->pb = NULL;
+    }
+
     if (m_fmtCtx)
 	{
-		if (m_avioCtx)
-        {
-			av_freep(&m_avioCtx->buffer);
-			avio_context_free(&m_avioCtx);
-			m_fmtCtx->pb = NULL;
-		}
-
-        //avformat_free_context(m_pFormatCtx);
-        //m_pFormatCtx = NULL;
 		avformat_close_input(&m_fmtCtx);
     }
 

@@ -29,12 +29,6 @@ void CSLPlayer::destroy()
     }
 }
 
-static void _cb(SLAndroidSimpleBufferQueueItf bf, void *context)
-{
-    auto engine = (CSLEngine*)context;
-    engine->cb(bf);
-}
-
 bool CSLPlayer::_create(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bitsPerSample)
 {
     //创建混音器
@@ -106,7 +100,7 @@ bool CSLPlayer::_create(CSLEngine *engine, SLuint32 samplesPerSec, SLuint16 bits
         //g_playsdkLogger << "GetInterface SL_IID_BUFFERQUEUE fail" >> re;
         return false;
     }
-    re = (*m_bf)->RegisterCallback(m_bf,_cb,engine);
+    re = (*m_bf)->RegisterCallback(m_bf, CSLEngine::_cb, engine);
     if(SL_RESULT_SUCCESS != re)
     {
         //g_playsdkLogger << "bf RegisterCallback fail" >> re;
@@ -244,31 +238,23 @@ bool CSLEngine::open(tagSLDevInfo& DevInfo)
     return true;
 }
 
-void CSLEngine::cb(SLAndroidSimpleBufferQueueItf& bf)
+void CSLEngine::_cb(SLAndroidSimpleBufferQueueItf& bf)
 {
+    m_mutex.lock();
+
     const uint8_t *lpBuff = NULL;
     size_t len = m_cb(lpBuff);
     if (len > 0)
     {
         (*bf)->Enqueue(bf,lpBuff,len);
-        return;
     }
-
-    mtutil::usleep(50);
-
-    len = m_cb(lpBuff);
-    if (len > 0)
+    else
     {
-        (*bf)->Enqueue(bf,lpBuff,len);
-        return;
+        mtutil::usleep(30);
+        (*bf)->Enqueue(bf,"",1);
     }
 
-    if (!m_bStatus)
-    {
-        return;
-    }
-
-    (*bf)->Enqueue(bf,"",1);
+    m_mutex.unlock();
 }
 
 void CSLEngine::pause(bool bPause)
@@ -289,8 +275,8 @@ void CSLEngine::clearbf()
 
 void CSLEngine::close()
 {
-    m_bStatus = false;
-
+    m_mutex.lock();
     m_pPlayer->stop();
+    m_mutex.unlock();
 }
 #endif

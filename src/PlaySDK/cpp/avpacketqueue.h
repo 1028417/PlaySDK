@@ -10,7 +10,7 @@ public:
 public:
     size_t enqueue(AVPacket& packet);
 
-    bool dequeue(AVPacket& packet);
+    int dequeue(AVPacket& packet);
 
     bool isEmpty() const
     {
