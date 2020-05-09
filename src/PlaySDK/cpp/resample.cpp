@@ -87,12 +87,12 @@ bool CResample::init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo
 	return NULL != _init(src_channel_layout, codecCtx.sample_fmt, codecCtx.sample_rate);
 }
 
-int CResample::convert(const AVFrame& frame)
+const uint8_t* CResample::convert(const AVFrame& frame, int& nRetSize)
 {
 	auto ctx = _getCtx(frame);
 	if (NULL == ctx)
 	{
-		return -1;
+        return NULL;
 	}
 	
 	auto in = (const uint8_t **)frame.extended_data;
@@ -100,18 +100,15 @@ int CResample::convert(const AVFrame& frame)
 	if (samples <= 0)
 	{
 		g_logger << "swr_convert fail: " >> samples;
-		return -1;
+        return NULL;
 	}
 
-	if (samples == m_out_count)
+    /*if (samples == m_out_count)
 	{
-		g_logger >> "swr audio buffer is probably too small";
-		if (swr_init(ctx) < 0)
-		{
-			_free();
-			return -1;
-		}
-	}
+        g_logger >> "swr audio buffer is probably too small";
+    }*/
 
-	return samples * m_bytesPerSample;
+    nRetSize = samples * m_bytesPerSample;
+
+    return m_buf;
 }

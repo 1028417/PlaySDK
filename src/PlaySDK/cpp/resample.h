@@ -35,12 +35,7 @@ private:
 	SwrContext* _getCtx(const AVFrame& frame);
 
 public:
-	const uint8_t* data() const
-	{
-		return m_buf;
-	}
+    bool init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo);
 
-	bool init(const AVCodecContext& codecCtx, const tagSLDevInfo& devInfo);
-
-	int convert(const AVFrame& frame);
+    const uint8_t* convert(const AVFrame& frame, int& nRetSize);
 };

@@ -261,11 +261,7 @@ int32_t AudioDecoder::_recvFrame()
 	}
 	else
 	{
-		audioBufSize = m_DecodeData.swr.convert(*frame);
-		if (audioBufSize > 0)
-		{
-			m_DecodeData.audioBuf = m_DecodeData.swr.data();
-		}
+        m_DecodeData.audioBuf = m_DecodeData.swr.convert(*frame, audioBufSize);
 	}
 
     if (AV_NOPTS_VALUE != frame->pts)
