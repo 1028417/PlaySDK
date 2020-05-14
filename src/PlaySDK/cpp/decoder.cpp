@@ -96,7 +96,10 @@ E_DecoderRetCode Decoder::_open()
         int nRet = av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); // TODO
         if (nRet)
 		{
-            g_logger << "av_probe_input_buffer fail: " >> nRet;
+            if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
+            {
+                g_logger << "av_probe_input_buffer fail: " >> nRet;
+            }
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
 
@@ -338,15 +341,15 @@ void Decoder::setVolume(uint8_t volume)
 
 void Decoder::_cleanup()
 {
-    if (m_avioCtx)
-    {
-        av_freep(&m_avioCtx->buffer);
-        avio_context_free(&m_avioCtx);
-        m_fmtCtx->pb = NULL;
-    }
-
     if (m_fmtCtx)
-	{
+    {
+        if (m_avioCtx)
+        {
+            av_freep(&m_avioCtx->buffer);
+            avio_context_free(&m_avioCtx);
+            m_fmtCtx->pb = NULL;
+        }
+
 		avformat_close_input(&m_fmtCtx);
     }
 
