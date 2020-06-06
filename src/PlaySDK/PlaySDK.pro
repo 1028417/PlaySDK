@@ -43,7 +43,7 @@ BinDir = ../../bin
 android {
     LIBS += -L$$CommonDir/libs/armeabi-v7a  -lxutil \
             -lOpenSLES \
-            -L../../libs/armeabi-v7a/ffmpeg  -lavcodec  -lavformat  -lavutil  -lswresample \
+            -L../../libs/armeabi-v7a  -lavcodec  -lavformat  -lavutil  -lswresample \
 
     platform = android
     DESTDIR = ..\..\libs\armeabi-v7a
