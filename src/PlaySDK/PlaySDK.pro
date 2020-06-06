@@ -47,7 +47,7 @@ android {
 
     platform = android
     DESTDIR = ..\..\libs\armeabi-v7a
-    QMAKE_POST_LINK += copy /Y $$DESTDIR\libxPlaySDK.so $$XMusicDir\libs\armeabi-v7a
+    #QMAKE_POST_LINK += copy /Y $$DESTDIR\libxPlaySDK.so $$XMusicDir\libs\armeabi-v7a
 } else: macx {
         LIBS += -L$$CommonDir/bin/mac  -lxutil \
                         $$BinDir/mac/SDL2.framework/Versions/A/SDL2 \
