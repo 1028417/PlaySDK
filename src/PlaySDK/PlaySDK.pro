@@ -49,29 +49,30 @@ android {
     DESTDIR = ..\..\libs\armeabi-v7a
     #QMAKE_POST_LINK += copy /Y $$DESTDIR\libxPlaySDK.so $$XMusicDir\libs\armeabi-v7a
 } else: macx {
-        LIBS += -L$$CommonDir/bin/mac  -lxutil \
-                        $$BinDir/mac/SDL2.framework/Versions/A/SDL2 \
-                        -L$$BinDir/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
-	#LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
-	#        -framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
-	#        -framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
+    LIBS += -L$$CommonDir/bin/mac  -lxutil \
+            $$BinDir/mac/SDL2.framework/Versions/A/SDL2 \
+            -L$$BinDir/mac  -lavcodec.58  -lavformat.58  -lavutil.56  -lswresample.3
 
-	platform = mac
-        DESTDIR = $$BinDir/mac
+    #LIBS += -lavcodec  -lavformat  -lavutil  -lswresample -lz  -lbz2  -liconv \
+            #-framework CoreFoundation  -framework AudioToolbox  -framework CoreMedia \
+            #-framework VideoToolbox  -framework AVFoundation  -framework CoreVideo  -framework Security
 
-        QMAKE_POST_LINK += cp -f $$DESTDIR/libxPlaySDK*.dylib $$XMusicDir/bin/mac/
+    platform = mac
+    DESTDIR = $$BinDir/mac
+
+    QMAKE_POST_LINK += cp -f $$DESTDIR/libxPlaySDK*.dylib $$XMusicDir/bin/mac/
 } else: ios {
-	platform = ios
-	DESTDIR = ../../../build/ioslib
+    platform = ios
+    DESTDIR = ../../../build/ioslib
 } else {
-        LIBS += -L$$CommonDir/bin  -lxutil \
-                        -L$$BinDir  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
+    LIBS += -L$$CommonDir/bin  -lxutil \
+            -L$$BinDir  -lSDL2  -lavcodec-58  -lavformat-58  -lavutil-56  -lswresample-3
 
-	platform = win
-        DESTDIR = ..\..\bin
+    platform = win
+    DESTDIR = ..\..\bin
 
-        QMAKE_POST_LINK += copy /Y $$DESTDIR\xPlaySDK.dll $$XMusicDir\bin && \
-            copy /Y $$DESTDIR\libxPlaySDK.a $$XMusicDir\bin
+    QMAKE_POST_LINK += copy /Y $$DESTDIR\xPlaySDK.dll $$XMusicDir\bin && \
+                       copy /Y $$DESTDIR\libxPlaySDK.a $$XMusicDir\bin
 }
 
 #CONFIG += debug_and_release
