@@ -51,7 +51,7 @@ private:
 
 	E_DecoderRetCode _checkStream();
 
-	void _start();
+    void _start();
 
 	void _cleanup();
 
@@ -85,7 +85,7 @@ public:
 
         E_DecoderRetCode open(bool bForce48KHz);
 
-        E_DecodeStatus start(uint64_t uPos=0);
+        void start(uint64_t uPos=0);
 
 	void cancel();
 

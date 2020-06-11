@@ -100,7 +100,7 @@ E_DecoderRetCode Decoder::_open()
 		AVInputFormat *pInFmt = NULL;
         int nRet = av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); // TODO
         if (nRet)
-		{
+        {
             if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
             {
                 g_logger << "av_probe_input_buffer fail: " >> nRet;
@@ -165,7 +165,7 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 	return E_DecoderRetCode::DRC_Success;
 }
 
-E_DecodeStatus Decoder::start(uint64_t uPos)
+void Decoder::start(uint64_t uPos)
 {
 	if (uPos > 0)
 	{
@@ -174,9 +174,9 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 	else
 	{
 		m_seekPos = -1;
-	}
+    }
 
-	_start();
+    _start();
 
     if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
     {
@@ -186,9 +186,7 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 
 	m_audioDecoder.close();
 
-	_cleanup();
-
-	return m_eDecodeStatus;
+    _cleanup();
 }
 
 void Decoder::_start()
@@ -266,7 +264,7 @@ void Decoder::_start()
             {
                 //m_eDecodeStatus = E_DecodeStatus::DS_Finished;
                 //m_packetQueue.clear();
-                return;
+                break;
             }
 
 			if (AVERROR_EOF != nRet)

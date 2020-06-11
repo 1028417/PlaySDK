@@ -45,6 +45,7 @@ long long CAudioOpaque::open(cwstr strFile)
     m_pf = fsutil::fopen(strFile, "rb");
     if (NULL == m_pf)
     {
+        m_nFileSize = -1;
         return -1;
     }
 
@@ -141,9 +142,8 @@ void CPlayer::QuitSDK()
 
 #define __decoder (*(Decoder*)m_AudioOpaque.decoder())
 
-void CPlayer::Stop()
+inline void CPlayer::_Stop()
 {
-    mutex_lock lock(m_mutex);
     if (m_thread.joinable())
     {
         __decoder.cancel();
@@ -151,41 +151,47 @@ void CPlayer::Stop()
     }
 }
 
-bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, CB_PlayStop cbStop)
+void CPlayer::Stop()
 {
     mutex_lock lock(m_mutex);
-    if (m_thread.joinable())
+    _Stop();
+}
+
+bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, cfn_void cbStop)
+{
+    mutex_lock lock(m_mutex);
+    _Stop();
+
+    auto eRet = __decoder.open(bForce48KHz);
+    if (eRet != E_DecoderRetCode::DRC_Success)
     {
-        __decoder.cancel();
-        m_thread.join();
+        return false;
     }
 
-    if (!m_AudioOpaque.isOnline())
-	{
-        auto eRet = __decoder.open(bForce48KHz);
-		if (eRet != E_DecoderRetCode::DRC_Success)
-        {
-			return false;
-		}
-	}
-
     m_thread = thread([=]() {
-        if (m_AudioOpaque.isOnline())
-		{
-            auto eRet = __decoder.open(bForce48KHz);
-			if (eRet != E_DecoderRetCode::DRC_Success)
-            {
-                cbStop(__decoder.decodeStatus() != E_DecodeStatus::DS_Cancel);
-
-				return;
-			}
-		}
-
         (void)__decoder.start(uStartPos);
-        cbStop(false);
+        cbStop();
 	});
 	
     return true;
+}
+
+void CPlayer::PlayStream(bool bForce48KHz, cfn_void_t<bool> cbStop)
+{
+    mutex_lock lock(m_mutex);
+    _Stop();
+
+    m_thread = thread([=]() {
+        auto eRet = __decoder.open(bForce48KHz);
+        if (eRet != E_DecoderRetCode::DRC_Success)
+        {
+            cbStop(false);
+            return;
+        }
+
+        (void)__decoder.start();
+        cbStop(true);
+    });
 }
 
 bool CPlayer::Pause()
