@@ -7,12 +7,17 @@
 
 int Decoder::_readOpaque(void *opaque, uint8_t *buf, int size)
 {
-    if (!((IAudioOpaque*)opaque)->read(buf, (UINT&)size))
+    int nRet = ((IAudioOpaque*)opaque)->read(buf, (UINT)size);
+    if (nRet < 0)
     {
-        return AVERROR_EOF;
+        nRet = AVERROR_EXIT;
+    }
+    else if (0 == nRet)
+    {
+        nRet = AVERROR_EOF;
     }
 
-    return size;
+    return nRet;
 }
 
 int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
@@ -173,6 +178,12 @@ E_DecodeStatus Decoder::start(uint64_t uPos)
 
 	_start();
 
+    if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
+    {
+        m_eDecodeStatus = E_DecodeStatus::DS_Finished;
+    }
+    m_packetQueue.clear();
+
 	m_audioDecoder.close();
 
 	_cleanup();
@@ -189,7 +200,7 @@ void Decoder::_start()
     {
         if (E_DecodeStatus::DS_Cancel == m_eDecodeStatus)
         {
-            m_packetQueue.clear();
+            //m_packetQueue.clear();
             break;
         }
 
@@ -224,7 +235,7 @@ void Decoder::_start()
 				{
 					bReadFinished = false;
 
-					m_packetQueue.clear();
+                    m_packetQueue.clear();
 
 					m_audioDecoder.seek(t_seekPos);
 
@@ -240,7 +251,7 @@ void Decoder::_start()
         {
             if (m_packetQueue.isEmpty())
             {
-                m_eDecodeStatus = E_DecodeStatus::DS_Finished;
+                //m_eDecodeStatus = E_DecodeStatus::DS_Finished;
                 break;
             }
 
@@ -251,6 +262,13 @@ void Decoder::_start()
 		int nRet = av_read_frame(m_fmtCtx, &packet);
 		if (nRet < 0)
         {
+            if (AVERROR_EXIT == nRet)
+            {
+                //m_eDecodeStatus = E_DecodeStatus::DS_Finished;
+                //m_packetQueue.clear();
+                return;
+            }
+
 			if (AVERROR_EOF != nRet)
 			{
 				g_logger << "av_read_frame fail: " >> nRet;

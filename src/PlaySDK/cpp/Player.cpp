@@ -89,10 +89,9 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
     return 0;*/
 }
 
-bool CAudioOpaque::read(byte_p buf, UINT& size)
+int CAudioOpaque::read(byte_p buf, UINT size)
 {
-    size = fread(buf, 1, size, m_pf);
-    return size > 0;
+    return fread(buf, 1, size, m_pf);
 }
 
 bool CAudioOpaque::seekingFlag() const
