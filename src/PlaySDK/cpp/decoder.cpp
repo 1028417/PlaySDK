@@ -104,13 +104,14 @@ E_DecoderRetCode Decoder::_open()
 
         AVInputFormat *pInFmt = NULL;
 
-/*        //m_bProbing = true;
-        int nRet = av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); // TODO max_probe_size
-        if (nRet)
+/*
+        //m_bProbing = true;
+        int nScore = av_probe_input_buffer2(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); //__avioBuffSize*3);
+        if (nScore <= 0)
         {
             if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
             {
-                g_logger << "av_probe_input_buffer fail: " >> nRet;
+                g_logger << "av_probe_input_buffer fail, score: " >> nScore;
             }
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
