@@ -105,14 +105,19 @@ uint32_t CAudioOpaque::duration() const
 	return ((Decoder*)m_pDecoder)->duration();
 }
 
-uint64_t CAudioOpaque::clock() const
+uint32_t CAudioOpaque::byteRate() const
 {
-	return ((Decoder*)m_pDecoder)->getClock();
+    return ((Decoder*)m_pDecoder)->byteRate();
 }
 
 int CAudioOpaque::sampleRate() const
 {
 	return ((Decoder*)m_pDecoder)->sampleRate();
+}
+
+uint64_t CAudioOpaque::clock() const
+{
+    return ((Decoder*)m_pDecoder)->getClock();
 }
 
 

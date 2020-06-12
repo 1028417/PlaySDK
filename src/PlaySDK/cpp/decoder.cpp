@@ -49,10 +49,14 @@ E_DecoderRetCode Decoder::_checkStream()
                 }
 				else
                 {
-                    m_duration = 0;
 					//return E_DecoderRetCode::DRC_InvalidAudioStream;
 				}
 				
+                if (m_fmtCtx->bit_rate > 0)
+                {
+                    m_byteRate = uint32_t(m_fmtCtx->bit_rate/8);
+                }
+
 				return E_DecoderRetCode::DRC_Success;
 			}
 		}
@@ -372,6 +376,7 @@ void Decoder::_cleanup()
     m_audioStreamIdx = -1;
 
     m_duration = 0;
+    m_byteRate = 0;
     
 	m_seekPos = -1;
 }

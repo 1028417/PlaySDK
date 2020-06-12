@@ -40,6 +40,7 @@ private:
 	int m_audioStreamIdx = -1;
 
 	uint32_t m_duration = 0;
+    uint32_t m_byteRate = 0;
 
 	int64_t m_seekPos = -1;
 
@@ -61,31 +62,36 @@ public:
         return m_eDecodeStatus;
 	}
 
-        const uint64_t& getClock()
-	{
-		return m_audioDecoder.clock();
-	}
-
     uint32_t duration() const
     {
-            return m_duration;
+        return m_duration;
     }
 	
+    uint32_t byteRate() const
+    {
+        return m_byteRate;
+    }
+
 	int sampleRate() const
 	{
 		return m_audioDecoder.sampleRate();
 	}
 
-        bool packetQueueEmpty() const
-        {
-            return m_packetQueue.isEmpty();
-        }
+    const uint64_t& getClock()
+    {
+        return m_audioDecoder.clock();
+    }
 
-        uint32_t check();
+    bool packetQueueEmpty() const
+    {
+        return m_packetQueue.isEmpty();
+    }
 
-        E_DecoderRetCode open(bool bForce48KHz);
+    uint32_t check();
 
-        void start(uint64_t uPos=0);
+    E_DecoderRetCode open(bool bForce48KHz);
+
+    void start(uint64_t uPos=0);
 
 	void cancel();
 
