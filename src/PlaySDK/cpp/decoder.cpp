@@ -101,7 +101,7 @@ E_DecoderRetCode Decoder::_open()
             av_free(avioBuff);
 			return E_DecoderRetCode::DRC_Fail;
 		}
-		
+
 		AVInputFormat *pInFmt = NULL;
         int nRet = av_probe_input_buffer(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); // TODO max_probe_size
         if (nRet)
@@ -112,6 +112,8 @@ E_DecoderRetCode Decoder::_open()
             }
 			return E_DecoderRetCode::DRC_OpenFail;
 		}
+
+        // TODO pInFmt = av_find_input_format("xxx");
 
         m_fmtCtx = avformat_alloc_context();
         if (NULL == m_fmtCtx)
@@ -124,9 +126,9 @@ E_DecoderRetCode Decoder::_open()
 
         nRet = avformat_open_input(&m_fmtCtx, NULL, pInFmt, NULL);
         if (nRet)
-		{
+        {
             g_logger << "avformat_open_input fail: " >> nRet;
-			return E_DecoderRetCode::DRC_OpenFail;
+            return E_DecoderRetCode::DRC_OpenFail;
 		}
 	}
 
