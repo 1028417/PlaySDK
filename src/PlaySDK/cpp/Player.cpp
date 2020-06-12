@@ -120,6 +120,10 @@ uint64_t CAudioOpaque::clock() const
     return ((Decoder*)m_pDecoder)->getClock();
 }
 
+//bool CAudioOpaque::probing() const
+//{
+//    return ((Decoder*)m_pDecoder)->probing();
+//}
 
 int CPlayer::InitSDK()
 {

@@ -30,19 +30,21 @@ private:
 
         AvPacketQueue m_packetQueue;
 
-	AudioDecoder m_audioDecoder;
+        AudioDecoder m_audioDecoder;
 
         E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 
-	AVFormatContext *m_fmtCtx = NULL;
-	AVIOContext *m_avioCtx = NULL;
+        bool m_bProbing = false;
 
-	int m_audioStreamIdx = -1;
+        AVFormatContext *m_fmtCtx = NULL;
+        AVIOContext *m_avioCtx = NULL;
 
-	uint32_t m_duration = 0;
-    uint32_t m_byteRate = 0;
+        int m_audioStreamIdx = -1;
 
-	int64_t m_seekPos = -1;
+        uint32_t m_duration = 0;
+        uint32_t m_byteRate = 0;
+
+        int64_t m_seekPos = -1;
 
 private:
         static int _readOpaque(void *opaque, uint8_t *buf, int bufSize);
@@ -61,6 +63,11 @@ public:
 	{
         return m_eDecodeStatus;
 	}
+
+//    bool probing() const
+//    {
+//        return m_bProbing;
+//    }
 
     uint32_t duration() const
     {
