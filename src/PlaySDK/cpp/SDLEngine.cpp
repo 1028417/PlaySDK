@@ -7,7 +7,6 @@
 
 /* Calculate actual buffer size keeping in mind not cause too frequent audio callbacks */
 #define __CALLBACK_PER_SEC 30
-
 #define __caleSamples(wantSpec) wantSpec.samples = FFMAX(__MIN_BUFFER_SIZE, 2 << av_log2(wantSpec.freq / __CALLBACK_PER_SEC))
 // = 4096
 

@@ -25,7 +25,7 @@ int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
     auto pAudioOpaque = (IAudioOpaque*)opaque;
 	if (AVSEEK_SIZE == whence)
     {
-        return pAudioOpaque->size(); //return -1; // 可直接返回-1
+        return pAudioOpaque->size(); //return -1; //可直接返回-1
 	}
 
     return pAudioOpaque->seek(offset, whence);
@@ -49,6 +49,7 @@ E_DecoderRetCode Decoder::_checkStream()
                 }
 				else
                 {
+                    g_logger >> "duration invalid";
 					//return E_DecoderRetCode::DRC_InvalidAudioStream;
 				}
 				
