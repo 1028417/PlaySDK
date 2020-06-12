@@ -114,7 +114,7 @@ E_DecoderRetCode Decoder::_open()
 		}
 
 		m_fmtCtx->pb = m_avioCtx;
-		m_fmtCtx->flags = AVFMT_FLAG_CUSTOM_IO;
+        m_fmtCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 
         nRet = avformat_open_input(&m_fmtCtx, NULL, pInFmt, NULL);
         if (nRet)
