@@ -231,8 +231,6 @@ void Decoder::_start()
 			m_seekPos = -1;
 			if (m_audioOpaque.seekable())
 			{
-				//avformat_flush(m_pFormatCtx);
-
 				auto tbPos = av_rescale_q(t_seekPos, av_get_time_base_q()
 					, m_fmtCtx->streams[m_audioStreamIdx]->time_base);
 				int nRet = av_seek_frame(m_fmtCtx, m_audioStreamIdx, tbPos, AVSEEK_FLAG_BACKWARD); // seek到默认流指定位置之前最近的关键帧
