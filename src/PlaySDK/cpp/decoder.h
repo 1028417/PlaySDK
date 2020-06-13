@@ -34,7 +34,7 @@ private:
 
         E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Finished;
 
-        bool m_bProbing = false;
+        //bool m_bProbing = false;
 
         AVFormatContext *m_fmtCtx = NULL;
         AVIOContext *m_avioCtx = NULL;
