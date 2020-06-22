@@ -60,7 +60,7 @@ android {
     platform = mac
     DESTDIR = $$BinDir/mac
 
-    QMAKE_POST_LINK += cp -f $$DESTDIR/libxPlaySDK*.dylib $$XMusicDir/bin/mac/
+    QMAKE_POST_LINK += cp -f $$DESTDIR/libxPlaySDK.1.dylib $$XMusicDir/bin/mac/
 } else: ios {
     platform = ios
     DESTDIR = ../../../build/ioslib
