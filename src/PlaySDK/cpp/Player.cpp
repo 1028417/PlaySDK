@@ -166,7 +166,7 @@ void CPlayer::Stop()
     _Stop();
 }
 
-bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, cfn_void cbStop)
+bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const function<void(bool bPlayFinish)>& cbStop)
 {
     mutex_lock lock(m_mutex);
     _Stop();
@@ -178,14 +178,14 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, cfn_void cbStop)
     }
 
     m_thread = thread([=]() {
-        (void)__decoder.start(uStartPos);
-        cbStop();
+        bool bPlayFinish = __decoder.start(uStartPos);
+        cbStop(bPlayFinish);
 	});
 	
     return true;
 }
 
-void CPlayer::PlayStream(bool bForce48KHz, cfn_void_t<bool> cbStop)
+void CPlayer::PlayStream(bool bForce48KHz, const function<void(bool bOpenSuccess, bool bPlayFinish)>& cbStop)
 {
     mutex_lock lock(m_mutex);
     _Stop();
@@ -194,13 +194,13 @@ void CPlayer::PlayStream(bool bForce48KHz, cfn_void_t<bool> cbStop)
         auto eRet = __decoder.open(bForce48KHz);
         if (eRet != E_DecoderRetCode::DRC_Success)
         {
-            cbStop(false);
+            cbStop(false, false);
             return;
         }
 
         // TODO cbStart();
-        (void)__decoder.start();
-        cbStop(true);
+        bool bPlayFinish = __decoder.start();
+        cbStop(true, bPlayFinish);
     });
 }
 

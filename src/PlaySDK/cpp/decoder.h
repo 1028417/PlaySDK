@@ -32,7 +32,7 @@ private:
 
         AudioDecoder m_audioDecoder;
 
-        E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Finished;
+        E_DecodeStatus m_eDecodeStatus = E_DecodeStatus::DS_Stop;
 
         //bool m_bProbing = false;
 
@@ -98,7 +98,7 @@ public:
 
     E_DecoderRetCode open(bool bForce48KHz);
 
-    void start(uint64_t uPos=0);
+    bool start(uint64_t uPos=0);
 
 	void cancel();
 

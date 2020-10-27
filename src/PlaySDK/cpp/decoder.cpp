@@ -38,8 +38,7 @@ E_DecoderRetCode Decoder::_checkStream()
         for (UINT uIdx = 0; uIdx < m_fmtCtx->nb_streams; uIdx++)
 		{
             AVStream& stream = *m_fmtCtx->streams[uIdx];
-            AVCodecParameters& codecpar = *stream.codecpar;
-            if (AVMEDIA_TYPE_AUDIO == codecpar.codec_type)
+            if (AVMEDIA_TYPE_AUDIO == stream.codecpar->codec_type)
             {
                 m_audioStreamIdx = uIdx;
 
@@ -109,7 +108,7 @@ E_DecoderRetCode Decoder::_open()
         int nScore = av_probe_input_buffer2(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); //__avioBuffSize*3);
         if (nScore <= 0)
         {
-            if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
+            if (m_eDecodeStatus != E_DecodeStatus::DS_Stop)
             {
                 g_logger << "av_probe_input_buffer fail, score: " >> nScore;
             }
@@ -158,31 +157,21 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 	if (eRet != E_DecoderRetCode::DRC_Success)
     {
         _cleanup();
-
-        if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
-		{
-            m_eDecodeStatus = E_DecodeStatus::DS_Finished;
-		}
-
+		m_eDecodeStatus = E_DecodeStatus::DS_Stop;		
 		return eRet;
 	}
 
     if (!m_audioDecoder.open(*m_fmtCtx->streams[m_audioStreamIdx], bForce48KHz))
 	{
-        _cleanup();
-
-        if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
-		{
-            m_eDecodeStatus = E_DecodeStatus::DS_Finished;
-		}
-
+        _cleanup();		
+		m_eDecodeStatus = E_DecodeStatus::DS_Stop;
 		return E_DecoderRetCode::DRC_InitAudioDevFail;
 	}
 
 	return E_DecoderRetCode::DRC_Success;
 }
 
-void Decoder::start(uint64_t uPos)
+bool Decoder::start(uint64_t uPos)
 {
 	if (uPos > 0)
 	{
@@ -195,15 +184,19 @@ void Decoder::start(uint64_t uPos)
 
     _start();
 
-    if (m_eDecodeStatus != E_DecodeStatus::DS_Cancel)
-    {
-        m_eDecodeStatus = E_DecodeStatus::DS_Finished;
-    }
     m_packetQueue.clear();
 
 	m_audioDecoder.close();
 
     _cleanup();
+
+	if (E_DecodeStatus::DS_Stop == m_eDecodeStatus)
+	{
+		return false;
+	}
+
+	m_eDecodeStatus = E_DecodeStatus::DS_Stop;
+	return true;
 }
 
 void Decoder::_start()
@@ -213,7 +206,7 @@ void Decoder::_start()
 	AVPacket packet;
     while (true)
     {
-        if (E_DecodeStatus::DS_Cancel == m_eDecodeStatus)
+        if (E_DecodeStatus::DS_Stop == m_eDecodeStatus)
         {
             //m_packetQueue.clear();
             break;
@@ -307,7 +300,7 @@ void Decoder::_start()
 
 void Decoder::cancel()
 {
-    m_eDecodeStatus = E_DecodeStatus::DS_Cancel;
+    m_eDecodeStatus = E_DecodeStatus::DS_Stop;
 }
 
 bool Decoder::pause()
