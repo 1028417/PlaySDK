@@ -40,7 +40,7 @@ void CAudioOpaque::close()
     m_nFileSize = -1;
 }
 
-long long CAudioOpaque::open(cwstr strFile)
+int64_t CAudioOpaque::open(cwstr strFile)
 {
     m_pf = fsutil::fopen(strFile, "rb");
     if (NULL == m_pf)
@@ -50,7 +50,7 @@ long long CAudioOpaque::open(cwstr strFile)
     }
 
     (void)fseek64(m_pf, 0, SEEK_END);
-    m_nFileSize = (long long )ftell64(m_pf);
+    m_nFileSize = ftell64(m_pf);
     if (m_nFileSize <= 0)
 	{
 		fclose(m_pf);
@@ -82,7 +82,7 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
 
     return fseek64(m_pf, offset, origin);
 
-    /*long long pos = lseek64(m_pf, offset, origin);
+    /*auto pos = lseek64(m_pf, offset, origin);
 	if (pos < 0)
     {
         return -1;
