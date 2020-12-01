@@ -37,7 +37,7 @@ void CAudioOpaque::close()
         m_pf = NULL;
     }
 
-    m_nFileSize = -1;
+    m_nFileSize = 0;//-1;
 }
 
 int64_t CAudioOpaque::open(cwstr strFile)
