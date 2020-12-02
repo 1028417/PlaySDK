@@ -139,8 +139,11 @@ int CPlayer::InitSDK()
 
 void CPlayer::QuitSDK()
 {
-	g_logger >> "QuitSDK";
-    m_logger.close();
+    if (m_logger.is_open())
+    {
+        g_logger >> "QuitSDK";
+        m_logger.close();
+    }
 
 #if __android
     CSLEngine::quit();
