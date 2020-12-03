@@ -86,7 +86,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
     wantSpec.callback = _cb;
     wantSpec.userdata = this;
 	
-	cauto fnOpen = [&]() {
+	cauto fnOpen = [&]{
 		auto t_wantSpec = wantSpec;
 		t_wantSpec.channels = 2;
 		m_devId = SDL_OpenAudioDevice(NULL, 0, &t_wantSpec, &m_spec, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);

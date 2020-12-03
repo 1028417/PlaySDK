@@ -180,7 +180,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const function<void(boo
         return false;
     }
 
-    m_thread = thread([=]() {
+    m_thread = thread([=]{
         bool bPlayFinish = __decoder.start(uStartPos);
         cbStop(bPlayFinish);
 	});
@@ -193,7 +193,7 @@ void CPlayer::PlayStream(bool bForce48KHz, const function<void(bool bOpenSuccess
     mutex_lock lock(m_mutex);
     _Stop();
 
-    m_thread = thread([=]() {
+    m_thread = thread([=]{
         auto eRet = __decoder.open(bForce48KHz);
         if (eRet != E_DecoderRetCode::DRC_Success)
         {
