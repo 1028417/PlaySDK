@@ -153,7 +153,7 @@ inline void CSDLEngine::_cb(uint8_t *stream, int len)
 		auto lpBuff = m_cb(len, uRetSize);
 		if (NULL == lpBuff)
 		{
-			mtutil::usleep(50);
+			__usleep(50);
 			break;
 		}
 

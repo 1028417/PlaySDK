@@ -257,7 +257,7 @@ void CSLEngine::_cb(SLAndroidSimpleBufferQueueItf& bf)
         }
         else
         {
-            mtutil::usleep(30);
+            __usleep(30);
             (*bf)->Enqueue(bf,"",1);
         }
     }

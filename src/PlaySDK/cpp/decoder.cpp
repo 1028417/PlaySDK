@@ -216,7 +216,7 @@ void Decoder::_start()
 
         if (E_DecodeStatus::DS_Paused == m_eDecodeStatus)
 		{
-            mtutil::usleep(50);
+            __usleep(50);
 			continue;
         }
 
@@ -263,7 +263,7 @@ void Decoder::_start()
                 break;
             }
 
-            mtutil::usleep(50);
+            __usleep(50);
             continue;
         }
 
@@ -290,7 +290,7 @@ void Decoder::_start()
 		{
             if (m_packetQueue.enqueue(packet) > 300)
 			{
-				mtutil::usleep(30);
+				__usleep(30);
 			}
 		}
 		else
