@@ -24,10 +24,9 @@ int64_t Decoder::_seekOpaque(void *opaque, int64_t offset, int whence)
 {
     auto pAudioOpaque = (IAudioOpaque*)opaque;
 	if (AVSEEK_SIZE == whence)
-    {
-        //return -1; //据说可以直接返回-1
-        //return pAudioOpaque->size();
-        return 0;
+    {        
+        //return 0;
+        return pAudioOpaque->size(); //return -1; //据说可以直接返回-1
 	}
 
     return pAudioOpaque->seek(offset, whence);
