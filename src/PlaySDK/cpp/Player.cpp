@@ -128,7 +128,7 @@ uint64_t CAudioOpaque::clock() const
 int CPlayer::InitSDK()
 {
     m_logger.open("playsdk.log", true);
-	g_logger >> "InitSDK";
+    m_logger >> "InitSDK";
 
 #if __android
     return CSLEngine::init();
@@ -139,17 +139,17 @@ int CPlayer::InitSDK()
 
 void CPlayer::QuitSDK()
 {
-    if (m_logger.is_open())
-    {
-        g_logger >> "QuitSDK";
-        m_logger.close();
-    }
-
 #if __android
     CSLEngine::quit();
 #else
     CSDLEngine::quit();
 #endif
+
+    if (m_logger.is_open())
+    {
+        m_logger >> "QuitSDK";
+        m_logger.close();
+    }
 }
 
 #define __decoder (*(Decoder*)m_AudioOpaque.decoder())
