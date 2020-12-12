@@ -172,7 +172,7 @@ void CPlayer::Stop()
 bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const function<void(bool bPlayFinish)>& cbStop)
 {
     mutex_lock lock(m_mutex);
-    _Stop();
+    //提速_Stop();
 
     auto eRet = __decoder.open(bForce48KHz);
     if (eRet != E_DecoderRetCode::DRC_Success)
