@@ -81,13 +81,6 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
     }
 
     return fseek64(m_pf, offset, origin);
-
-    /*auto pos = lseek64(m_pf, offset, origin);
-	if (pos < 0)
-    {
-        return -1;
-    }
-    return 0;*/
 }
 
 int CAudioOpaque::read(byte_p buf, UINT size)
