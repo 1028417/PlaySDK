@@ -103,7 +103,6 @@ E_DecoderRetCode Decoder::_open()
 		}
 
         AVInputFormat *pInFmt = NULL;
-
 /*
         //m_bProbing = true;
         int nScore = av_probe_input_buffer2(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); //__avioBuffSize*3);
@@ -136,7 +135,7 @@ E_DecoderRetCode Decoder::_open()
 		}
 	}
 
-    return  _checkStream();
+    return _checkStream();
 }
 
 uint32_t Decoder::check()
