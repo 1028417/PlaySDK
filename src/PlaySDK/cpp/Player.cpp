@@ -83,7 +83,7 @@ int64_t CAudioOpaque::seek(int64_t offset, int origin)
     return fseek64(m_pf, offset, origin);
 }
 
-int CAudioOpaque::read(byte_p buf, UINT size)
+int CAudioOpaque::read(byte_p buf, size_t size)
 {
     return fread(buf, 1, size, m_pf);
 }
