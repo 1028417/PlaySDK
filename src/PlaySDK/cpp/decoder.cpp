@@ -102,22 +102,6 @@ E_DecoderRetCode Decoder::_open()
 			return E_DecoderRetCode::DRC_Fail;
 		}
 
-        AVInputFormat *pInFmt = NULL;
-/*
-        //m_bProbing = true;
-        int nScore = av_probe_input_buffer2(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); //__avioBuffSize*3);
-        if (nScore <= 0)
-        {
-            if (m_eDecodeStatus != E_DecodeStatus::DS_Stop)
-            {
-                g_logger << "av_probe_input_buffer fail, score: " >> nScore;
-            }
-			return E_DecoderRetCode::DRC_OpenFail;
-		}
-        //m_bProbing = false;
-*/
-        //pInFmt = av_find_input_format("m4a"); // 不探测直接指定格式
-
         m_fmtCtx = avformat_alloc_context();
         if (NULL == m_fmtCtx)
         {
@@ -127,6 +111,19 @@ E_DecoderRetCode Decoder::_open()
 		m_fmtCtx->pb = m_avioCtx;
         m_fmtCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 
+        AVInputFormat *pInFmt = NULL;
+        /*//m_bProbing = true;
+        int nScore = av_probe_input_buffer2(m_avioCtx, &pInFmt, NULL, NULL, 0, 0); //__avioBuffSize*3);
+        if (nScore <= 0)
+        {
+            if (m_eDecodeStatus != E_DecodeStatus::DS_Stop)
+            {
+                g_logger << "av_probe_input_buffer fail, score: " >> nScore;
+            }
+            return E_DecoderRetCode::DRC_OpenFail;
+        }
+        //m_bProbing = false;*/
+        //pInFmt = av_find_input_format("m4a"); // 不探测直接指定格式
         int nRet = avformat_open_input(&m_fmtCtx, NULL, pInFmt, NULL);
         if (nRet)
         {
