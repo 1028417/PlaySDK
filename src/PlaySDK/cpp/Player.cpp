@@ -98,10 +98,10 @@ uint32_t CAudioOpaque::duration() const
 	return ((Decoder*)m_pDecoder)->duration();
 }
 
-uint32_t CAudioOpaque::byteRate() const
+/*uint32_t CAudioOpaque::byteRate() const
 {
     return ((Decoder*)m_pDecoder)->byteRate();
-}
+}*/
 
 int CAudioOpaque::sampleRate() const
 {

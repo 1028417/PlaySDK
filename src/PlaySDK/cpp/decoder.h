@@ -42,7 +42,7 @@ private:
         int m_audioStreamIdx = -1;
 
         uint32_t m_duration = 0;
-        uint32_t m_byteRate = 0;
+        //uint32_t m_byteRate = 0;
 
         int64_t m_seekPos = -1;
 
@@ -74,10 +74,10 @@ public:
         return m_duration;
     }
 	
-    uint32_t byteRate() const
+    /*uint32_t byteRate() const
     {
         return m_byteRate;
-    }
+    }*/
 
 	int sampleRate() const
 	{
