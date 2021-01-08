@@ -31,7 +31,6 @@ public:
     {
         if (m_playIf)
         {
-            //m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
             if (bPause)
             {
                 (*m_playIf)->SetPlayState(m_playIf, SL_PLAYSTATE_PAUSED);
@@ -64,7 +63,6 @@ public:
     {
         if (m_playIf)
         {
-            //m_eStatus = E_SLDevStatus::Close;
             (*m_playIf)->SetPlayState(m_playIf,SL_PLAYSTATE_STOPPED);
             if (m_bf)
             {
@@ -88,7 +86,8 @@ private:
     CSLPlayer *m_pPlayer = NULL;
 
     mutex m_mutex;
-    bool m_bClosed = false;
+
+    E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
 
 private:
     static void _cb(SLAndroidSimpleBufferQueueItf bf, void *context)
@@ -101,6 +100,11 @@ private:
 public:
     static int init();
     static void quit();
+
+    inline bool isOpen() const override
+    {
+        return m_eStatus != E_SLDevStatus::Close;
+    }
 
     bool open(tagSLDevInfo& DevInfo) override;
 

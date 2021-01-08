@@ -64,6 +64,11 @@ public:
         return m_eDecodeStatus;
 	}
 
+    inline bool isOpen() const
+    {
+        return m_audioDecoder.isOpen();
+    }
+
 //    bool probing() const
 //    {
 //        return m_bProbing;
@@ -79,7 +84,7 @@ public:
         return m_byteRate;
     }*/
 
-	int sampleRate() const
+    inline int sampleRate() const
 	{
 		return m_audioDecoder.sampleRate();
 	}

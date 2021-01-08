@@ -30,6 +30,8 @@ struct tagSLDevInfo
 class IAudioDevEngine
 {
 public:
+    virtual bool isOpen() const = 0;
+
     virtual bool open(tagSLDevInfo& DevInfo) = 0;
 
 	virtual void pause(bool bPause) = 0;

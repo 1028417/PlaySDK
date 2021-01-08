@@ -137,7 +137,7 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 	DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
 	DevInfo.sample_rate = m_spec.freq;
 
-    //m_eStatus = E_SLDevStatus::Ready;
+    m_eStatus = E_SLDevStatus::Ready;
 	SDL_PauseAudioDevice(m_devId, 0);
 
 	return true;
@@ -147,7 +147,7 @@ inline void CSDLEngine::_cb(uint8_t *stream, int len)
 {
 	SDL_memset(stream, 0, len);
 
-	while (true)
+    while (isOpen())
 	{
 		size_t uRetSize = 0;
 		auto lpBuff = m_cb(len, uRetSize);
@@ -177,8 +177,11 @@ void SDLCALL CSDLEngine::_cb(void *userdata, uint8_t *stream, int len)
 
 void CSDLEngine::pause(bool bPause)
 {
-    //m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
-	SDL_PauseAudioDevice(m_devId, bPause?1:0);
+    if (isOpen())
+    {
+        m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
+        SDL_PauseAudioDevice(m_devId, bPause?1:0);
+    }
 }
 
 void CSDLEngine::clearbf()
@@ -188,7 +191,7 @@ void CSDLEngine::clearbf()
 
 void CSDLEngine::close()
 {
-    //m_eStatus = E_SLDevStatus::Close;
+    m_eStatus = E_SLDevStatus::Close;
     SDL_ClearQueuedAudio(m_devId);
 	SDL_CloseAudioDevice(m_devId);
 }

@@ -27,12 +27,17 @@ private:
 	
 	uint8_t m_volume = 100;
 
-    //E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
+    E_SLDevStatus m_eStatus = E_SLDevStatus::Close;
 
 public:
     static string getErrMsg();
     static int init();
     static void quit();
+
+    inline bool isOpen() const override
+    {
+        return m_eStatus != E_SLDevStatus::Close;
+    }
 
     bool open(tagSLDevInfo& DevInfo) override;
 

@@ -307,14 +307,12 @@ bool Decoder::pause()
         if (m_audioStreamIdx >= 0)
         {
             m_eDecodeStatus = E_DecodeStatus::DS_Paused;
-
             m_audioDecoder.pause(true);
         }
         else
         {
-            cancel();
+            cancel(); //??
         }
-
         return true;
 	}
 
@@ -327,7 +325,6 @@ bool Decoder::resume()
     {
         m_eDecodeStatus = E_DecodeStatus::DS_Decoding;
 		m_audioDecoder.pause(false);
-
         return true;
 	}
 
@@ -336,7 +333,7 @@ bool Decoder::resume()
 
 bool Decoder::seek(uint64_t pos)
 {
-    if (m_audioStreamIdx >= 0)
+    if (sampleRate()) //isOpen())
     {
         //if (-1 == m_seekPos)
         m_seekPos = pos;

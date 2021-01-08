@@ -200,6 +200,11 @@ void CPlayer::PlayStream(bool bForce48KHz, const function<void(bool bOpenSuccess
     });
 }
 
+bool CPlayer::isOpen() const
+{
+    return __decoder.isOpen();
+}
+
 bool CPlayer::Pause()
 {
     bool bRet = false;

@@ -232,11 +232,12 @@ bool CSLEngine::open(tagSLDevInfo& DevInfo)
         sample_rate = 44100;
     }
 
-    m_bClosed = false;
+    m_eStatus = E_SLDevStatus::Ready;
 
     m_pPlayer = &g_mapPlayer[sample_rate+bitsPerSample];
     if (!m_pPlayer->start(this, sample_rate*1000, bitsPerSample))
     {
+        m_eStatus = E_SLDevStatus::Close;
         return false;
     }
 
@@ -247,7 +248,7 @@ void CSLEngine::_cb(SLAndroidSimpleBufferQueueItf& bf)
 {
     m_mutex.lock();
 
-    if (!m_bClosed)
+    if (isOpen())
     {
         size_t uRetSize = 0;
         auto lpBuff = m_cb(uRetSize);
@@ -267,7 +268,11 @@ void CSLEngine::_cb(SLAndroidSimpleBufferQueueItf& bf)
 
 void CSLEngine::pause(bool bPause)
 {
-    m_pPlayer->pause(bPause);
+    if (isOpen())
+    {
+        m_eStatus = bPause?E_SLDevStatus::Pause:E_SLDevStatus::Ready;
+        m_pPlayer->pause(bPause);
+    }
 }
 
 void CSLEngine::setVolume(uint8_t volume)
@@ -284,7 +289,7 @@ void CSLEngine::clearbf()
 void CSLEngine::close()
 {
     m_mutex.lock();
-    m_bClosed = true;
+    m_eStatus = E_SLDevStatus::Close;
     m_mutex.unlock();
     m_pPlayer->stop();
 }
