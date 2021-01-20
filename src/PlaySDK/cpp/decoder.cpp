@@ -154,7 +154,7 @@ E_DecoderRetCode Decoder::open(bool bForce48KHz)
 	if (eRet != E_DecoderRetCode::DRC_Success)
     {
         _cleanup();
-		m_eDecodeStatus = E_DecodeStatus::DS_Stop;		
+        m_eDecodeStatus = E_DecodeStatus::DS_Stop;
 		return eRet;
 	}
 
