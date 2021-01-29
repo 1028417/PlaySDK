@@ -65,7 +65,12 @@ int64_t CAudioOpaque::open(cwstr strFile)
 
 uint32_t CAudioOpaque::checkDuration()
 {
-    return ((Decoder*)m_pDecoder)->check();
+	return ((Decoder*)m_pDecoder)->check();
+}
+
+uint32_t CAudioOpaque::checkDuration(cwstr strFile)
+{
+	return ((Decoder*)m_pDecoder)->check(strFile);
 }
 
 const E_DecodeStatus& CAudioOpaque::decodeStatus() const
@@ -145,7 +150,7 @@ void CPlayer::QuitSDK()
     }
 }
 
-#define __decoder (*(Decoder*)m_AudioOpaque.decoder())
+#define __decoder (*(Decoder*)m_audioOpaque.decoder())
 
 inline void CPlayer::_Stop()
 {
@@ -167,7 +172,7 @@ bool CPlayer::Play(uint64_t uStartPos, bool bForce48KHz, const function<void(boo
     mutex_lock lock(m_mutex);
     //提速_Stop();
 
-    auto eRet = __decoder.open(bForce48KHz);
+    auto eRet = __decoder.open(bForce48KHz, m_audioOpaque.localFilePath());
     if (eRet != E_DecoderRetCode::DRC_Success)
     {
         return false;
@@ -246,4 +251,22 @@ void CPlayer::SetVolume(UINT uVolume)
 bool CPlayer::packetQueueEmpty() const
 {
     return __decoder.packetQueueEmpty();
+}
+
+#if __winvc
+static mutex s_mtxCheck;
+static CAudioOpaque s_aopCheck;
+#endif
+
+UINT CPlayer::CheckDuration(cwstr strFile)
+{
+#if !__winvc
+    static mutex s_mtxCheck;
+    static CAudioOpaque s_aopCheck;
+#endif
+
+    s_mtxCheck.lock();
+    auto duration = s_aopCheck.checkDuration(strFile);
+    s_mtxCheck.unlock();
+    return duration;
 }

@@ -67,9 +67,8 @@ E_DecoderRetCode Decoder::_checkStream()
 	return E_DecoderRetCode::DRC_NoAudioStream;
 }
 
-E_DecoderRetCode Decoder::_open()
+E_DecoderRetCode Decoder::_open(cwstr strFile)
 {
-    cauto strFile = m_audioOpaque.localFilePath();
 	if (!strFile.empty())
 	{
         m_fmtCtx = avformat_alloc_context();
@@ -138,19 +137,24 @@ E_DecoderRetCode Decoder::_open()
 uint32_t Decoder::check()
 {
     (void)_open();
-
 	uint32_t uDuration = m_duration;
-
 	_cleanup();
-
 	return uDuration;
 }
 
-E_DecoderRetCode Decoder::open(bool bForce48KHz)
+uint32_t Decoder::check(cwstr strFile)
+{
+	(void)_open(strFile);
+	uint32_t uDuration = m_duration;
+	_cleanup();
+	return uDuration;
+}
+
+E_DecoderRetCode Decoder::open(bool bForce48KHz, cwstr strFile)
 {
     m_eDecodeStatus = E_DecodeStatus::DS_Decoding;
 
-    auto eRet = _open();
+    auto eRet = _open(strFile);
 	if (eRet != E_DecoderRetCode::DRC_Success)
     {
         _cleanup();

@@ -19,9 +19,9 @@ enum class E_DecoderRetCode
 class Decoder
 {
 public:
-        Decoder(IAudioOpaque& AudioOpaque)
-            : m_audioOpaque(AudioOpaque)
-            , m_audioDecoder(m_packetQueue)
+    Decoder(IAudioOpaque& opaque)
+        : m_audioOpaque(opaque)
+        , m_audioDecoder(m_packetQueue)
 	{
 	}
 	
@@ -50,7 +50,7 @@ private:
         static int _readOpaque(void *opaque, uint8_t *buf, int bufSize);
         static int64_t _seekOpaque(void *opaque, int64_t offset, int whence);
 
-        E_DecoderRetCode _open();
+        E_DecoderRetCode _open(cwstr strFile = L"");
 
 	E_DecoderRetCode _checkStream();
 
@@ -99,9 +99,10 @@ public:
         return m_packetQueue.isEmpty();
     }
 
-    uint32_t check();
+	uint32_t check();
+	uint32_t check(cwstr strFile);
 
-    E_DecoderRetCode open(bool bForce48KHz);
+    E_DecoderRetCode open(bool bForce48KHz, cwstr strFile = L"");
 
     bool start(uint64_t uPos=0);
 
