@@ -141,4 +141,4 @@ public:
     static UINT CheckDuration(cwstr strFile);
 };
 
-#define __checkDuraton(file) CPlayer::CheckDuration(file)
+#define __checkDuration(file) CPlayer::CheckDuration(file)
