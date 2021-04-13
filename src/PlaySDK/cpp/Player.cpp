@@ -145,7 +145,7 @@ void CPlayer::QuitSDK()
 
     if (m_logger.is_open())
     {
-        m_logger >> "QuitSDK";
+        //m_logger >> "QuitSDK";
         m_logger.close();
     }
 }
