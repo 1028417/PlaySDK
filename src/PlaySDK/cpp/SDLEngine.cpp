@@ -48,13 +48,6 @@ string CSDLEngine::getErrMsg()
 	return atoi(env);
 }*/
 
-static map<SDL_AudioFormat, AVSampleFormat> g_mapSampleFormat {
-    {AUDIO_U8, AV_SAMPLE_FMT_U8}
-    , {AUDIO_S16, AV_SAMPLE_FMT_S16} // 16bit的flac、wav
-    , {AUDIO_S32SYS, AV_SAMPLE_FMT_S32} // 24bit的flac、wav
-    , {AUDIO_F32SYS, AV_SAMPLE_FMT_FLT} // mp3、ape、32bit浮点wav
-};
-
 bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 {
 	SDL_AudioSpec wantSpec;
@@ -133,9 +126,17 @@ bool CSDLEngine::open(tagSLDevInfo& DevInfo)
 		return false;
 	}
 	
-	DevInfo.channels = m_spec.channels;
-	DevInfo.sample_fmt = g_mapSampleFormat[m_spec.format];
-	DevInfo.sample_rate = m_spec.freq;
+    DevInfo.channels = m_spec.channels;
+
+    static map<SDL_AudioFormat, AVSampleFormat> mapSampleFormat {
+        {AUDIO_U8, AV_SAMPLE_FMT_U8}
+        , {AUDIO_S16, AV_SAMPLE_FMT_S16} // 16bit的flac、wav
+        , {AUDIO_S32SYS, AV_SAMPLE_FMT_S32} // 24bit的flac、wav
+        , {AUDIO_F32SYS, AV_SAMPLE_FMT_FLT} // mp3、ape、32bit浮点wav
+    };
+    DevInfo.sample_fmt = mapSampleFormat[m_spec.format];
+
+    DevInfo.sample_rate = m_spec.freq;
 
     m_eStatus = E_SLDevStatus::Ready;
 	SDL_PauseAudioDevice(m_devId, 0);
